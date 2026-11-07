@@ -1,0 +1,43 @@
+{
+  "title": "选定视觉世界",
+  "question": "本轮抽到「计时塔 · 赛事遥测」。保留它、换成备选，或者重抽。（本轮离线运行，没有外部挑战者）",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "计时塔 · 赛事遥测",
+      "kicker": "THE ROLL",
+      "lineage": "F1 / 耐力赛直播计时塔与维修墙遥测屏",
+      "thesis": "每条业务是一辆在跑的车：步骤是迷你赛段，等你处理就是进站，钱就是积分差。你坐在维修墙后面，只负责下策略判断。",
+      "palette": ["#0b0b0c", "#f2f0ea", "#c6ff3d", "#ffb81c", "#ff3b30", "#9b6bff"],
+      "materials": ["广播字幕条", "迷你赛段色块", "压缩无衬线数字", "格旗纹"],
+      "viewport": "满屏计时塔：一行一条业务，左侧排名与车号，中间是这条业务真实步骤组成的迷你赛段条（绿=在跑，黄旗=等你，红旗=阻塞，紫=刷新最好成绩），右侧本周净额与我的分钟数。顶部一条赛事指挥横幅，滚动显示待我处理的事项。",
+      "risk": "比喻用浅了会像主题皮肤，甚至显得游戏化；必须把计时塔的排版语法当成仪表，而不是贴纸。",
+      "comp": ".impeccable/mocks/decision/assigned.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "地铁线路图",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Beck / Vignelli 地铁线路图",
+      "thesis": "每条业务一条彩色线路，步骤是站点，终点站标着钱，跨业务共用的步骤就是换乘站。",
+      "palette": ["#f4f1e8", "#1a1a1a", "#e4322b", "#0a7bc1", "#f6b500", "#009a44"],
+      "materials": ["45° 线路", "站点圆环", "换乘标识"],
+      "viewport": "整屏一张线路图，10 条线横向平行展开，列车标记停在当前站。",
+      "risk": "这也是这类产品最容易落到的方向，因为“流水线”直接就能读成“线路”；另外钱的信息会被挤到线路末端。",
+      "comp": ".impeccable/mocks/decision/model-pick.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code", "toggle": true },
+  "canon": true,
+  "canonCard": {
+    "label": "行业标准做法",
+    "thesis": "Linear / Vercel 式深色 SaaS 控制台，做到最好。",
+    "palette": ["#0a0a0a", "#ededed", "#3b82f6"],
+    "materials": ["细描边卡片", "Inter 字体", "小图表"],
+    "viewport": "侧边导航，加卡片网格和表格。",
+    "risk": "和竞品看不出区别，而且正是你说的“太传统”。",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}

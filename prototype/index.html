@@ -1,0 +1,2233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07080d">
+  <meta name="description" content="Wuji / 无极 — a boundless agent workspace.">
+  <title>Wuji · 无极</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #07080d;
+      --ink-2: #10141d;
+      --ink-glass: rgba(9, 11, 17, .82);
+      --paper: #f7f3ea;
+      --paper-muted: rgba(247, 243, 234, .68);
+      --paper-faint: rgba(247, 243, 234, .46);
+      --line: rgba(247, 243, 234, .12);
+      --line-strong: rgba(247, 243, 234, .24);
+      --accent: #ff5a36;
+      --jade: #7de0c1;
+      --gold: #e7c877;
+      --sky: #9ec5fe;
+      --iris: #b9c0ff;
+      --clay: #ff9d7a;
+      --serif: "Songti SC", "Noto Serif SC", "Georgia", serif;
+      --sans: "Avenir Next", "PingFang SC", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      --shadow-soft: 0 24px 80px rgba(0, 0, 0, .38);
+      --shadow-lifted: 0 14px 38px rgba(0, 0, 0, .28);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, textarea, input { font: inherit; color: inherit; }
+
+    button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    ::selection { background: var(--paper); color: var(--ink); }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .field {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+      background:
+        radial-gradient(ellipse at 50% 108%, rgba(247, 243, 234, .055), transparent 56%),
+        linear-gradient(160deg, #07080d 0%, #0a0d14 48%, #06070c 100%);
+    }
+
+    .field::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(247, 243, 234, .22) .9px, transparent .95px);
+      background-size: 44px 44px;
+      opacity: .1;
+      pointer-events: none;
+    }
+
+    .field.dragging { cursor: grabbing; }
+
+    .world {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .relations {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .relation {
+      fill: none;
+      stroke: rgba(247, 243, 234, .16);
+      stroke-width: 1.2;
+      stroke-linecap: round;
+      transition: stroke .24s var(--ease), opacity .24s var(--ease);
+    }
+
+    .relation.near { stroke: rgba(247, 243, 234, .42); }
+    .relation.k-binds { stroke: rgba(158, 197, 254, .34); stroke-width: 1.6; stroke-dasharray: 7 4; }
+    .relation.k-triggers { stroke: rgba(255, 157, 122, .3); stroke-dasharray: 2 5; }
+    .relation.k-supports { stroke: rgba(247, 243, 234, .1); stroke-dasharray: 1 6; }
+    .relation.k-binds.near { stroke: rgba(158, 197, 254, .6); }
+    .relation.k-triggers.near { stroke: rgba(255, 157, 122, .58); }
+    .relation.k-supports.near { stroke: rgba(247, 243, 234, .28); }
+
+    .node {
+      --node-w: 330px;
+      --tone: var(--paper-muted);
+      position: absolute;
+      width: min(var(--node-w), 86vw);
+      padding: 15px 17px 14px;
+      border: 1px solid var(--line);
+      border-radius: 19px;
+      background:
+        linear-gradient(158deg, rgba(247, 243, 234, .075), rgba(247, 243, 234, .015) 42%),
+        linear-gradient(180deg, var(--ink-2), rgba(10, 12, 18, .94));
+      box-shadow: var(--shadow-soft);
+      cursor: default;
+      opacity: 1;
+      transform: translate(var(--node-x), var(--node-y)) scale(1);
+      filter: blur(0);
+      transition: opacity .48s var(--ease), transform .48s var(--ease), filter .48s var(--ease),
+                  border-color .22s var(--ease), box-shadow .22s var(--ease);
+    }
+
+    .node:hover { border-color: var(--line-strong); box-shadow: var(--shadow-lifted); }
+
+    .node.selected {
+      border-color: rgba(247, 243, 234, .45);
+      box-shadow: 0 0 0 1px rgba(247, 243, 234, .1), var(--shadow-soft);
+    }
+
+    .node.draft { border-style: dashed; border-color: rgba(247, 243, 234, .2); }
+    .node.draft.selected { border-color: rgba(247, 243, 234, .45); }
+
+    .node.working { border-color: rgba(125, 224, 193, .34); border-style: solid; }
+
+    .node.enter {
+      opacity: 0;
+      transform: translate(var(--node-x), var(--node-y)) scale(.97);
+      filter: blur(6px);
+    }
+
+    .node.kind-intent { --tone: var(--accent); }
+    .node.kind-trace { --tone: var(--jade); --node-w: 356px; }
+    .node.kind-evidence { --tone: var(--sky); }
+    .node.kind-table { --tone: var(--sky); --node-w: 452px; }
+    .node.kind-plan { --tone: var(--gold); --node-w: 348px; }
+    .node.kind-decision { --tone: var(--iris); --node-w: 356px; }
+    .node.kind-action { --tone: var(--clay); --node-w: 348px; }
+    .node.kind-note { --tone: var(--paper-muted); }
+
+    .node-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 20px;
+      margin-bottom: 10px;
+      cursor: grab;
+    }
+
+    .node-head:active { cursor: grabbing; }
+
+    .marker {
+      flex: 0 0 auto;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--tone);
+    }
+
+    .node.working .marker { animation: breathe 1.25s var(--ease) infinite; }
+
+    .node-type {
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--paper-faint);
+    }
+
+    .tag-draft {
+      padding: 1px 7px;
+      border: 1px dashed rgba(247, 243, 234, .28);
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: .06em;
+      color: rgba(247, 243, 234, .5);
+    }
+
+    .node-time {
+      margin-left: auto;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: rgba(247, 243, 234, .34);
+    }
+
+    .node-title {
+      margin: 0 0 9px;
+      font-family: var(--serif);
+      font-size: 21px;
+      font-weight: 650;
+      line-height: 1.32;
+      letter-spacing: -.025em;
+    }
+
+    .node-foot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 11px;
+      border-top: 1px solid rgba(247, 243, 234, .07);
+      font-size: 12px;
+      letter-spacing: .04em;
+    }
+
+    .node-hint {
+      color: rgba(247, 243, 234, .38);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .node-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex: 0 0 auto;
+    }
+
+    .node-action {
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: rgba(247, 243, 234, .52);
+      transition: color .18s ease, background .18s ease;
+    }
+
+    .node-action:hover { color: var(--paper); background: rgba(247, 243, 234, .08); }
+
+    .node-action.confirm { color: var(--jade); }
+    .node-action.confirm:hover { background: rgba(125, 224, 193, .12); color: var(--jade); }
+
+    .shape-text {
+      min-height: 44px;
+      color: var(--paper-muted);
+      font-size: 14px;
+      line-height: 1.72;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      border-radius: 8px;
+      padding: 2px;
+      margin: -2px;
+      outline: none;
+    }
+
+    .shape-text:hover { color: rgba(247, 243, 234, .82); }
+    .shape-text:focus {
+      color: var(--paper);
+      background: rgba(247, 243, 234, .055);
+      box-shadow: inset 0 0 0 1px rgba(247, 243, 234, .08);
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border: 1px solid rgba(247, 243, 234, .14);
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: .02em;
+      color: var(--paper-muted);
+    }
+
+    .chip button {
+      color: rgba(247, 243, 234, .34);
+      font-size: 13px;
+      line-height: 1;
+      padding: 0 1px;
+    }
+
+    .chip button:hover { color: var(--accent); }
+
+    .chip-add {
+      padding: 3px 10px;
+      border: 1px dashed rgba(247, 243, 234, .2);
+      border-radius: 999px;
+      font-size: 12px;
+      color: rgba(247, 243, 234, .4);
+    }
+
+    .chip-add:hover { color: var(--paper); border-color: rgba(247, 243, 234, .34); }
+
+    .steps { margin: 0; padding: 0; list-style: none; }
+
+    .step {
+      border-top: 1px solid rgba(247, 243, 234, .06);
+    }
+
+    .step:first-child { border-top: 0; }
+
+    .step-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 7px 2px;
+      text-align: left;
+    }
+
+    .step-row:hover { background: rgba(247, 243, 234, .035); }
+
+    .step-dot {
+      flex: 0 0 auto;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1px solid rgba(247, 243, 234, .3);
+    }
+
+    .step.done .step-dot { background: var(--jade); border-color: var(--jade); }
+    .step.running .step-dot { background: var(--jade); border-color: var(--jade); animation: breathe 1.2s var(--ease) infinite; }
+    .step.failed .step-dot { background: var(--clay); border-color: var(--clay); }
+    .step.pending .step-dot { background: transparent; }
+    .step.skipped .step-dot { background: transparent; border-style: dashed; }
+
+    .step-label {
+      flex: 1 1 auto;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--paper-muted);
+    }
+
+    .step.done .step-label { color: rgba(247, 243, 234, .8); }
+    .step.pending .step-label { color: rgba(247, 243, 234, .42); }
+    .step.skipped .step-label { text-decoration: line-through; color: rgba(247, 243, 234, .3); }
+
+    .step-meta {
+      flex: 0 0 auto;
+      font-size: 11.5px;
+      color: rgba(247, 243, 234, .32);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .step-detail {
+      padding: 2px 2px 10px 18px;
+      font-size: 12.5px;
+      line-height: 1.62;
+      color: rgba(247, 243, 234, .5);
+    }
+
+    .quote {
+      margin: 0 0 9px;
+      padding: 8px 11px;
+      border-left: 2px solid var(--sky);
+      border-radius: 0 8px 8px 0;
+      background: rgba(158, 197, 254, .06);
+      font-family: var(--serif);
+      font-size: 13.5px;
+      line-height: 1.68;
+      color: rgba(247, 243, 234, .74);
+    }
+
+    .ev-claim {
+      margin: 0 0 9px;
+      font-size: 14px;
+      line-height: 1.68;
+      color: var(--paper-muted);
+    }
+
+    .ev-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: rgba(247, 243, 234, .44);
+    }
+
+    .ev-source {
+      color: rgba(158, 197, 254, .78);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(158, 197, 254, .28);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ev-source:hover { color: var(--sky); border-color: var(--sky); }
+
+    .ev-verify {
+      margin-top: 11px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ev-button {
+      padding: 4px 10px;
+      border: 1px solid rgba(247, 243, 234, .14);
+      border-radius: 999px;
+      font-size: 12px;
+      color: rgba(247, 243, 234, .56);
+      transition: color .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .ev-button:hover { color: var(--paper); border-color: rgba(247, 243, 234, .3); background: rgba(247, 243, 234, .06); }
+
+    .ev-button[aria-pressed="true"] {
+      color: var(--jade);
+      border-color: rgba(125, 224, 193, .4);
+      background: rgba(125, 224, 193, .1);
+    }
+
+    .ev-button[aria-pressed="true"].doubt {
+      color: var(--clay);
+      border-color: rgba(255, 157, 122, .4);
+      background: rgba(255, 157, 122, .1);
+    }
+
+    .tbl-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .tbl-filter {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 5px 10px;
+      border: 1px solid rgba(247, 243, 234, .1);
+      border-radius: 999px;
+      background: rgba(247, 243, 234, .04);
+      font-size: 12.5px;
+      outline: none;
+    }
+
+    .tbl-filter::placeholder { color: rgba(247, 243, 234, .3); }
+    .tbl-filter:focus { border-color: rgba(247, 243, 234, .28); }
+
+    .tbl-count {
+      flex: 0 0 auto;
+      font-size: 11.5px;
+      color: rgba(247, 243, 234, .38);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tbl-wrap {
+      max-height: 216px;
+      overflow: auto;
+      border-top: 1px solid rgba(247, 243, 234, .07);
+    }
+
+    .tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+
+    .tbl th {
+      position: sticky;
+      top: 0;
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 11.5px;
+      letter-spacing: .05em;
+      color: rgba(247, 243, 234, .44);
+      background: rgba(12, 15, 22, .96);
+      border-bottom: 1px solid rgba(247, 243, 234, .08);
+      white-space: nowrap;
+    }
+
+    .tbl th.sortable { cursor: pointer; }
+    .tbl th.sortable:hover { color: var(--paper); }
+    .tbl th .arrow { color: var(--sky); margin-left: 3px; }
+
+    .tbl td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(247, 243, 234, .05);
+      color: rgba(247, 243, 234, .7);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tbl tbody tr { cursor: pointer; }
+    .tbl tbody tr:hover td { background: rgba(247, 243, 234, .04); }
+    .tbl tbody tr.sel td { background: rgba(158, 197, 254, .12); color: var(--paper); }
+    .tbl tbody tr.sel td:first-child { box-shadow: inset 2px 0 0 var(--sky); }
+
+    .progress {
+      height: 3px;
+      margin-bottom: 10px;
+      border-radius: 999px;
+      background: rgba(247, 243, 234, .09);
+      overflow: hidden;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: var(--gold);
+      transition: width .3s var(--ease);
+    }
+
+    .plan-list { margin: 0; padding: 0; list-style: none; }
+
+    .plan-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 5px 2px;
+      border-radius: 6px;
+    }
+
+    .plan-item:hover { background: rgba(247, 243, 234, .035); }
+
+    .plan-item input {
+      appearance: none;
+      flex: 0 0 auto;
+      width: 15px;
+      height: 15px;
+      margin: 3px 0 0;
+      border: 1px solid rgba(247, 243, 234, .3);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background .16s ease, border-color .16s ease;
+    }
+
+    .plan-item input:checked {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .plan-item input:checked::after {
+      content: "";
+      display: block;
+      width: 4px;
+      height: 8px;
+      margin: 1px auto 0;
+      border: solid var(--ink);
+      border-width: 0 1.6px 1.6px 0;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+
+    .plan-text {
+      flex: 1 1 auto;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--paper-muted);
+    }
+
+    .plan-item.done .plan-text {
+      color: rgba(247, 243, 234, .38);
+      text-decoration: line-through;
+    }
+
+    .owner {
+      flex: 0 0 auto;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: .04em;
+      color: rgba(247, 243, 234, .38);
+      background: rgba(247, 243, 234, .06);
+    }
+
+    .owner.agent { color: var(--jade); background: rgba(125, 224, 193, .1); }
+
+    .dec-q {
+      margin: 0 0 10px;
+      font-size: 13.5px;
+      color: rgba(247, 243, 234, .56);
+    }
+
+    .options { display: grid; gap: 7px; }
+
+    .option {
+      display: block;
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid rgba(247, 243, 234, .12);
+      border-radius: 11px;
+      text-align: left;
+      background: rgba(247, 243, 234, .02);
+      transition: border-color .18s ease, background .18s ease, opacity .18s ease;
+    }
+
+    .option:hover { border-color: rgba(247, 243, 234, .28); background: rgba(247, 243, 234, .05); }
+
+    .option.selected {
+      border-color: rgba(185, 192, 255, .55);
+      background: rgba(185, 192, 255, .1);
+    }
+
+    .option.dim { opacity: .5; }
+
+    .opt-top { display: flex; align-items: baseline; gap: 8px; }
+
+    .opt-label {
+      font-family: var(--serif);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+
+    .opt-rec {
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      letter-spacing: .06em;
+      color: var(--iris);
+      background: rgba(185, 192, 255, .14);
+    }
+
+    .opt-sub {
+      margin-top: 3px;
+      font-size: 12px;
+      color: rgba(247, 243, 234, .5);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .opt-reason {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(247, 243, 234, .44);
+    }
+
+    .act-box {
+      padding: 11px 12px;
+      border: 1px solid rgba(255, 157, 122, .22);
+      border-radius: 12px;
+      background: rgba(255, 157, 122, .05);
+    }
+
+    .act-box.approved { border-color: rgba(125, 224, 193, .3); background: rgba(125, 224, 193, .06); }
+    .act-box.rejected { border-color: rgba(247, 243, 234, .12); background: rgba(247, 243, 234, .02); }
+
+    .act-verb {
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+
+    .act-target {
+      margin-top: 2px;
+      font-size: 13px;
+      color: rgba(247, 243, 234, .62);
+    }
+
+    .act-meta {
+      margin-top: 9px;
+      display: grid;
+      gap: 3px;
+      font-size: 12px;
+      color: rgba(247, 243, 234, .48);
+    }
+
+    .act-flag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .act-flag.ok { color: var(--jade); }
+    .act-flag.warn { color: var(--clay); }
+
+    .act-flag i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .act-btns { margin-top: 11px; display: flex; gap: 7px; }
+
+    .act-btn {
+      padding: 5px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(247, 243, 234, .16);
+      font-size: 12.5px;
+      color: rgba(247, 243, 234, .66);
+      transition: color .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .act-btn:hover { color: var(--paper); background: rgba(247, 243, 234, .08); border-color: rgba(247, 243, 234, .3); }
+
+    .act-btn.primary {
+      color: var(--ink);
+      background: var(--jade);
+      border-color: var(--jade);
+      font-weight: 600;
+    }
+
+    .act-btn.primary:hover { background: #96e9ce; color: var(--ink); }
+
+    .act-result {
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid rgba(247, 243, 234, .08);
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: rgba(247, 243, 234, .58);
+    }
+
+    .topbar {
+      position: fixed;
+      z-index: 20;
+      top: 20px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      pointer-events: auto;
+      text-decoration: none;
+      color: var(--paper);
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid rgba(247, 243, 234, .18);
+      background: rgba(9, 11, 17, .68);
+      box-shadow: 0 8px 26px rgba(0, 0, 0, .2);
+    }
+
+    .brand-mark svg { display: block; }
+
+    .brand-word {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -.035em;
+      line-height: 1;
+    }
+
+    .brand-word small {
+      color: var(--paper-muted);
+      font-size: 12px;
+      font-family: var(--sans);
+      letter-spacing: .16em;
+      line-height: 1;
+    }
+
+    .top-actions { display: flex; align-items: center; gap: 14px; pointer-events: auto; }
+
+    .save-state {
+      color: rgba(247, 243, 234, .42);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .quiet-button {
+      min-height: 34px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(247, 243, 234, .13);
+      background: rgba(9, 11, 17, .58);
+      color: var(--paper-muted);
+      font-size: 12px;
+      letter-spacing: .03em;
+      backdrop-filter: blur(14px);
+      transition: color .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .quiet-button:hover { color: var(--paper); border-color: rgba(247, 243, 234, .28); background: rgba(247, 243, 234, .07); }
+
+    .rail {
+      position: fixed;
+      z-index: 20;
+      left: 24px;
+      top: 50%;
+      translate: 0 -50%;
+      display: grid;
+      gap: 7px;
+      padding: 9px;
+      border: 1px solid rgba(247, 243, 234, .1);
+      border-radius: 999px;
+      background: var(--ink-glass);
+      box-shadow: var(--shadow-lifted);
+      backdrop-filter: blur(22px) saturate(140%);
+    }
+
+    .tool {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: rgba(247, 243, 234, .58);
+      transition: color .18s ease, background .18s ease, transform .18s var(--ease);
+    }
+
+    .tool:hover { color: var(--paper); background: rgba(247, 243, 234, .085); transform: translateY(-1px); }
+
+    .hud {
+      position: fixed;
+      z-index: 20;
+      right: 24px;
+      bottom: 138px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 6px;
+      border: 1px solid rgba(247, 243, 234, .1);
+      border-radius: 999px;
+      background: var(--ink-glass);
+      box-shadow: var(--shadow-lifted);
+      backdrop-filter: blur(20px);
+    }
+
+    .zoom-button {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--paper-muted);
+      transition: color .18s ease, background .18s ease;
+    }
+
+    .zoom-button:hover { color: var(--paper); background: rgba(247, 243, 234, .09); }
+
+    .zoom-value {
+      min-width: 42px;
+      text-align: center;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: rgba(247, 243, 234, .56);
+    }
+
+    .summon {
+      position: fixed;
+      z-index: 30;
+      left: 50%;
+      bottom: 24px;
+      translate: -50% 0;
+      width: min(760px, calc(100% - 32px));
+      padding: 12px 12px 9px;
+      border: 1px solid rgba(247, 243, 234, .13);
+      border-radius: 27px;
+      background:
+        linear-gradient(150deg, rgba(247, 243, 234, .065), transparent 46%),
+        var(--ink-glass);
+      box-shadow: 0 24px 90px rgba(0, 0, 0, .48);
+      backdrop-filter: blur(28px) saturate(150%);
+      transition: border-color .24s ease, box-shadow .24s ease;
+    }
+
+    .summon:focus-within {
+      border-color: rgba(247, 243, 234, .32);
+      box-shadow: 0 28px 110px rgba(0, 0, 0, .56), 0 0 0 1px rgba(247, 243, 234, .05);
+    }
+
+    .modes { display: flex; align-items: center; gap: 5px; margin: 0 3px 9px; }
+
+    .mode {
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: rgba(247, 243, 234, .48);
+      font-size: 12px;
+      letter-spacing: .04em;
+      transition: color .18s ease, background .18s ease;
+    }
+
+    .mode:hover { color: var(--paper); }
+
+    .mode[aria-pressed="true"] { color: var(--ink); background: rgba(247, 243, 234, .9); }
+
+    .mode-note {
+      margin-left: auto;
+      color: rgba(247, 243, 234, .3);
+      font-size: 12px;
+      letter-spacing: .05em;
+    }
+
+    .summon-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 3px 4px 3px 8px;
+    }
+
+    .summon-icon { width: 22px; margin-bottom: 11px; color: rgba(247, 243, 234, .45); }
+    .summon-icon svg { display: block; }
+
+    #prompt {
+      width: 100%;
+      min-height: 42px;
+      max-height: 112px;
+      padding: 9px 0;
+      border: 0;
+      resize: none;
+      overflow: auto;
+      background: transparent;
+      color: var(--paper);
+      caret-color: var(--accent);
+      font-size: 16px;
+      line-height: 1.55;
+      outline: none;
+    }
+
+    #prompt::placeholder { color: rgba(247, 243, 234, .34); }
+
+    .summon-button {
+      min-width: 64px;
+      height: 40px;
+      padding: 0 15px;
+      border-radius: 999px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: .02em;
+      transition: transform .18s var(--ease), opacity .18s ease, background .18s ease;
+    }
+
+    .summon-button:hover { transform: translateY(-1px); }
+    .summon-button:active { transform: translateY(0); }
+
+    .summon-hint {
+      padding: 0 8px 3px;
+      color: rgba(247, 243, 234, .3);
+      font-size: 12px;
+      letter-spacing: .03em;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 40;
+      left: 50%;
+      bottom: 126px;
+      translate: -50% 0;
+      min-width: 180px;
+      max-width: min(420px, calc(100% - 40px));
+      padding: 10px 16px;
+      border: 1px solid rgba(247, 243, 234, .14);
+      border-radius: 999px;
+      background: rgba(7, 8, 13, .92);
+      color: var(--paper);
+      font-size: 13px;
+      text-align: center;
+      box-shadow: var(--shadow-lifted);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity .24s var(--ease), transform .24s var(--ease);
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @keyframes breathe {
+      0%, 100% { opacity: .55; transform: scale(.86); }
+      50% { opacity: 1; transform: scale(1.08); }
+    }
+
+    @media (max-width: 720px) {
+      .topbar { left: 16px; right: 16px; top: 14px; }
+      .brand-word { font-size: 19px; }
+      .brand-word small { display: none; }
+      .save-state { display: none; }
+      .rail { left: 16px; top: auto; bottom: 148px; translate: 0 0; }
+      .hud { right: 16px; bottom: 148px; }
+      .summon { bottom: 14px; padding: 10px 10px 7px; border-radius: 24px; }
+      .mode-note { display: none; }
+      .toast { bottom: 210px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .node, .tool, .summon-button, .relation, .marker, .progress span {
+        transition: none !important;
+        animation: none !important;
+      }
+      .node.enter { opacity: 1; transform: translate(var(--node-x), var(--node-y)); filter: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="field" id="stage" aria-label="无极工作空间">
+    <div class="world" id="world">
+      <svg class="relations" id="relations" aria-hidden="true"></svg>
+    </div>
+  </main>
+
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Wuji 无极">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f7f3ea" stroke-width="1.4" stroke-linecap="round">
+          <circle cx="12" cy="12" r="9.2" opacity=".35"></circle>
+          <path d="M4 13c4.2-7.4 11.8 6.2 16-1.6"></path>
+          <path d="M12 2.8v18.4" opacity=".3"></path>
+        </svg>
+      </span>
+      <span class="brand-word">Wuji <small>无极</small></span>
+    </a>
+
+    <div class="top-actions">
+      <span class="save-state" id="saveState">已保存</span>
+      <button class="quiet-button" id="resetButton" type="button">重置空间</button>
+    </div>
+  </header>
+
+  <aside class="rail" aria-label="创建工具">
+    <button class="tool" id="addNote" type="button" aria-label="新建笔记" title="新建笔记（N）">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M5 4h14v16H5z" opacity=".45"></path>
+        <path d="M8.2 9h7.6M8.2 13h5.6"></path>
+      </svg>
+    </button>
+
+    <button class="tool" id="addIntent" type="button" aria-label="新建意图" title="新建意图">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="7.2" opacity=".48"></circle>
+        <path d="M12 8.6v6.8M8.6 12h6.8"></path>
+      </svg>
+    </button>
+
+    <button class="tool" id="fitView" type="button" aria-label="适配视野" title="适配视野（F）">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"></path>
+      </svg>
+    </button>
+  </aside>
+
+  <div class="hud" aria-label="缩放控制">
+    <button class="zoom-button" id="zoomOut" type="button" aria-label="缩小">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14"/></svg>
+    </button>
+    <span class="zoom-value" id="zoomValue">100%</span>
+    <button class="zoom-button" id="zoomIn" type="button" aria-label="放大">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </div>
+
+  <form class="summon" id="summonForm">
+    <div class="modes" role="group" aria-label="Agent 模式">
+      <button class="mode" type="button" data-mode="plan" aria-pressed="true">规划</button>
+      <button class="mode" type="button" data-mode="research" aria-pressed="false">研究</button>
+      <button class="mode" type="button" data-mode="write" aria-pressed="false">写作</button>
+      <button class="mode" type="button" data-mode="execute" aria-pressed="false">执行</button>
+      <span class="mode-note">形态由内容决定</span>
+    </div>
+
+    <div class="summon-row">
+      <span class="summon-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="10" cy="10" r="5.8"></circle>
+          <path d="M14.4 14.4 20 20"></path>
+        </svg>
+      </span>
+
+      <label class="sr-only" for="prompt">把目标交给无极</label>
+      <textarea id="prompt" rows="1" placeholder="把任何目标交给无极…" autocomplete="off"></textarea>
+
+      <button class="summon-button" type="submit">召唤</button>
+    </div>
+
+    <div class="summon-hint">Enter 召唤 · 拖动空白移动空间 · 双击空白建笔记 · F 适配视野</div>
+  </form>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    const STORAGE_KEY = "wuji.field.v2";
+    const stage = document.getElementById("stage");
+    const world = document.getElementById("world");
+    const relations = document.getElementById("relations");
+    const zoomValue = document.getElementById("zoomValue");
+    const saveState = document.getElementById("saveState");
+    const toastEl = document.getElementById("toast");
+    const promptEl = document.getElementById("prompt");
+
+    const modeMeta = {
+      plan: { label: "规划", kind: "plan" },
+      research: { label: "研究", kind: "trace" },
+      write: { label: "写作", kind: "note" },
+      execute: { label: "执行", kind: "action" }
+    };
+
+    const kindMeta = {
+      intent: { label: "意图", en: "Intent", hint: "锚点" },
+      note: { label: "笔记", en: "Note", hint: "可自由编辑" },
+      trace: { label: "过程", en: "Trace", hint: "点开步骤可查看依据" },
+      evidence: { label: "证据", en: "Evidence", hint: "可标记核实状态" },
+      table: { label: "数据表", en: "Table", hint: "可排序筛选 · 点行选中" },
+      plan: { label: "计划", en: "Plan", hint: "可勾选 · 可委托" },
+      decision: { label: "决策", en: "Decision", hint: "点选后可展开为计划" },
+      action: { label: "动作", en: "Action", hint: "需审批" }
+    };
+
+    const legacyType = { intent: "intent", agent: "trace", note: "note", task: "plan" };
+
+    const linkMeta = {
+      derived: { label: "衍生" },
+      binds: { label: "绑定" },
+      triggers: { label: "触发" },
+      supports: { label: "支撑" }
+    };
+
+    function seededField() {
+      return {
+        camera: { x: 60, y: 40, z: .6 },
+        activeMode: "plan",
+        nodes: [
+          {
+            id: 1, kind: "intent", status: "confirmed", x: 40, y: 380,
+            title: "东京五日行程",
+            data: {
+              goal: "把行程、预算、步行路线和备选方案整理成一块可以继续修改的行动场。",
+              constraints: ["预算 ¥8000", "步行 ≤ 12km/天", "10/23–10/27", "博物馆优先"]
+            }
+          },
+          {
+            id: 2, kind: "trace", status: "draft", x: 440, y: 250, confidence: .72, sources: [],
+            title: "调研过程",
+            data: {
+              steps: [
+                { id: "s1", label: "锁定 10/23–10/27 的交通边界", status: "done", tool: "web.search", secs: 2.4, note: "往返已锁定，成田进出，末班 22:40。" },
+                { id: "s2", label: "以涩谷为枢纽做上午/下午/夜间分簇", status: "done", tool: "planner", secs: 3.1, note: "三簇共 14 个候选点，其中美术馆 4 个。" },
+                { id: "s3", label: "比对候选酒店价格与步行距离", status: "running", tool: "web.fetch", secs: 0, note: "正在抓取 6 家房源的实时报价…" },
+                { id: "s4", label: "保留两个雨天备选", status: "pending", tool: "planner", secs: 0, note: "待 s3 完成后按步行距离排序取前二。" }
+              ],
+              open: ["s2"]
+            }
+          },
+          {
+            id: 3, kind: "evidence", status: "draft", x: 880, y: 40, confidence: .86, sources: [],
+            title: "涩谷站周边房源价格",
+            data: {
+              claim: "涩谷站步行 10 分钟内，10/23–10/27 的商务酒店均价约 ¥1,150/晚。",
+              quote: "10 月下旬为东京市区房价高点，建议优先锁定可免费取消的房源。",
+              source: { title: "Tokyo Hotel Price Index · 2026-10", url: "#", fetchedAt: "今天 11:20" },
+              verified: true
+            }
+          },
+          {
+            id: 4, kind: "evidence", status: "draft", x: 880, y: 300, confidence: .64, sources: [],
+            title: "地铁与步行成本",
+            data: {
+              claim: "涩谷—新宿单程约 ¥210，步行 11 分钟，日均通勤成本可忽略。",
+              quote: "山手线内环平均候车 3.5 分钟，早高峰拥挤度中等。",
+              source: { title: "JR 东日本时刻与运价表", url: "#", fetchedAt: "今天 11:24" },
+              verified: false
+            }
+          },
+          {
+            id: 5, kind: "evidence", status: "draft", x: 880, y: 560, confidence: .91, sources: [],
+            title: "美术馆开放时间",
+            data: {
+              claim: "根津美术馆周一闭馆，10:00–17:00，最后入场 16:30。",
+              quote: "馆藏以东亚古美术为主，常设展约需 90 分钟。",
+              source: { title: "根津美术馆官网", url: "#", fetchedAt: "今天 11:31" },
+              verified: true
+            }
+          },
+          {
+            id: 6, kind: "table", status: "draft", x: 1320, y: 250, confidence: .82, sources: [3, 4],
+            title: "候选酒店对比",
+            data: {
+              columns: [
+                { key: "name", label: "酒店" },
+                { key: "price", label: "均价/晚" },
+                { key: "walk", label: "步行(min)" },
+                { key: "cancel", label: "可取消" }
+              ],
+              rows: [
+                { id: "r1", name: "涩谷 Stream", price: 1180, walk: 6, cancel: "24h" },
+                { id: "r2", name: "新宿 Granbell", price: 980, walk: 11, cancel: "48h" },
+                { id: "r3", name: "代官山 Court", price: 1420, walk: 14, cancel: "不可" },
+                { id: "r4", name: "中目黑 R", price: 860, walk: 18, cancel: "24h" },
+                { id: "r5", name: "表参道 Hills", price: 1350, walk: 9, cancel: "48h" },
+                { id: "r6", name: "惠比寿 Garden", price: 1090, walk: 13, cancel: "不可" }
+              ],
+              sort: { key: "price", dir: "asc" },
+              filter: "",
+              selection: ["r1"]
+            }
+          },
+          {
+            id: 7, kind: "decision", status: "draft", x: 1830, y: 200, confidence: .78, sources: [6],
+            title: "住涩谷还是新宿",
+            data: {
+              question: "枢纽定在哪里？",
+              options: [
+                { id: "o1", label: "涩谷", sub: "¥1,150/晚 · 步行 6min", pros: ["离美术馆近", "夜生活集中"], cons: ["溢价约 18%"], recommended: true, confidence: .78 },
+                { id: "o2", label: "新宿", sub: "¥980/晚 · 步行 11min", pros: ["便宜 15%", "去镰仓更顺"], cons: ["人流量大", "排队久"], recommended: false, confidence: .71 }
+              ],
+              selected: null,
+              rationale: "按偏好「博物馆优先、少排队」，涩谷更贴合，但需接受溢价。",
+              spawned: false
+            }
+          },
+          {
+            id: 8, kind: "plan", status: "draft", x: 2240, y: 430, confidence: .7, sources: [7],
+            title: "涩谷三日详细计划",
+            data: {
+              items: [
+                { id: "p1", text: "Day1 上午：明治神宫 + 表参道", done: true, owner: "human" },
+                { id: "p2", text: "Day1 下午：涩谷 Sky 预约（agent 代办）", done: false, owner: "agent" },
+                { id: "p3", text: "Day2：根津美术馆（雨天备选）", done: false, owner: "human" },
+                { id: "p4", text: "Day3：镰仓一日，需确认 JR 时刻", done: false, owner: "agent" }
+              ]
+            }
+          },
+          {
+            id: 9, kind: "action", status: "draft", x: 2240, y: 760, confidence: .8, sources: [6, 7],
+            title: "预订涩谷 Stream",
+            data: {
+              verb: "预订",
+              target: "涩谷 Stream · 10/23–10/27 · 4 晚",
+              scope: "影响：住宿 ¥4,800，占总预算 60%",
+              reversible: true,
+              reversibleNote: "24h 内可免费取消",
+              state: "proposed",
+              result: ""
+            }
+          },
+          {
+            id: 10, kind: "note", status: "confirmed", x: 440, y: 680, sources: [],
+            title: "偏好",
+            data: { text: "博物馆优先，少排队，晚餐偏清淡，尽量步行。" }
+          }
+        ],
+        links: [
+          { from: 1, to: 2, kind: "derived" },
+          { from: 2, to: 3, kind: "derived" },
+          { from: 2, to: 4, kind: "derived" },
+          { from: 2, to: 5, kind: "derived" },
+          { from: 3, to: 6, kind: "supports" },
+          { from: 4, to: 6, kind: "supports" },
+          { from: 6, to: 7, kind: "binds" },
+          { from: 7, to: 8, kind: "derived" },
+          { from: 8, to: 9, kind: "triggers" },
+          { from: 10, to: 2, kind: "derived" }
+        ]
+      };
+    }
+
+    let state = loadState();
+    let selectedId = null;
+    let nodeId = 0;
+    let saveTimer = 0;
+    let toastTimer = 0;
+    const nodes = new Map();
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function migrate(parsed) {
+      parsed.nodes.forEach(node => {
+        if (!node.kind) {
+          node.kind = legacyType[node.type] || "note";
+          node.data = node.data || { text: node.body || "" };
+        }
+        if (!node.data) node.data = {};
+        if (!node.status) node.status = "confirmed";
+        if (!Array.isArray(node.sources)) node.sources = [];
+      });
+      parsed.links.forEach(link => {
+        if (!link.kind) link.kind = "derived";
+      });
+      return parsed;
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return seededField();
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.nodes) || !Array.isArray(parsed.links) || !parsed.camera) {
+          return seededField();
+        }
+        parsed.activeMode = modeMeta[parsed.activeMode] ? parsed.activeMode : "plan";
+        return migrate(parsed);
+      } catch (_) {
+        return seededField();
+      }
+    }
+
+    function scheduleSave() {
+      saveState.textContent = "保存中";
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        const time = new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+        saveState.textContent = `已保存 ${time}`;
+      }, 420);
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+    }
+
+    function formatTime(value) {
+      const date = new Date(value || Date.now());
+      const today = new Date();
+      if (date.toDateString() === today.toDateString()) {
+        return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+      }
+      return date.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" });
+    }
+
+    function applyCamera() {
+      world.style.transform = `translate3d(${state.camera.x}px, ${state.camera.y}px, 0) scale(${state.camera.z})`;
+      stage.style.backgroundSize = `${44 * state.camera.z}px ${44 * state.camera.z}px`;
+      stage.style.backgroundPosition = `${state.camera.x}px ${state.camera.y}px`;
+      zoomValue.textContent = `${Math.round(state.camera.z * 100)}%`;
+    }
+
+    function screenToWorld(clientX, clientY) {
+      const rect = stage.getBoundingClientRect();
+      return {
+        x: (clientX - rect.left - state.camera.x) / state.camera.z,
+        y: (clientY - rect.top - state.camera.y) / state.camera.z
+      };
+    }
+
+    function positionNode(item) {
+      item.el.style.setProperty("--node-x", `${item.data.x}px`);
+      item.el.style.setProperty("--node-y", `${item.data.y}px`);
+    }
+
+    function sortedRows(node) {
+      const d = node.data;
+      let rows = (d.rows || []).slice();
+      const filter = String(d.filter || "").trim().toLowerCase();
+      if (filter) {
+        rows = rows.filter(row => (d.columns || []).some(col => String(row[col.key]).toLowerCase().includes(filter)));
+      }
+      if (d.sort) {
+        const key = d.sort.key;
+        const dir = d.sort.dir === "desc" ? -1 : 1;
+        rows.sort((a, b) => {
+          const av = a[key];
+          const bv = b[key];
+          if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+          return String(av).localeCompare(String(bv), "zh") * dir;
+        });
+      }
+      return rows;
+    }
+
+    function renderShape(node) {
+      const d = node.data || {};
+
+      if (node.kind === "intent") {
+        const chips = (d.constraints || []).map((text, index) =>
+          `<li class="chip"><span>${escapeHtml(text)}</span><button type="button" data-act="drop-chip" data-index="${index}" aria-label="移除约束">×</button></li>`
+        ).join("");
+        return `
+          <div class="shape-text" contenteditable="plaintext-only" spellcheck="false" data-field="goal">${escapeHtml(d.goal)}</div>
+          <ul class="chips">${chips}<li><button class="chip-add" type="button" data-act="add-chip">+ 约束</button></li></ul>
+        `;
+      }
+
+      if (node.kind === "note") {
+        return `<div class="shape-text" contenteditable="plaintext-only" spellcheck="false" data-field="text">${escapeHtml(d.text)}</div>`;
+      }
+
+      if (node.kind === "trace") {
+        const open = d.open || [];
+        const steps = (d.steps || []).map(step => {
+          const isOpen = open.indexOf(step.id) >= 0;
+          const meta = step.status === "done" ? `${step.secs}s` : step.status === "running" ? "进行中" : "待执行";
+          return `
+            <li class="step ${escapeHtml(step.status)}">
+              <button class="step-row" type="button" data-act="toggle-step" data-step="${escapeHtml(step.id)}">
+                <span class="step-dot"></span>
+                <span class="step-label">${escapeHtml(step.label)}</span>
+                <span class="step-meta">${escapeHtml(meta)}</span>
+              </button>
+              ${isOpen ? `<div class="step-detail">${escapeHtml(step.note || "暂无备注")}　<span style="opacity:.6">${escapeHtml(step.tool || "")}</span></div>` : ""}
+            </li>
+          `;
+        }).join("");
+        return `<ol class="steps">${steps}</ol>`;
+      }
+
+      if (node.kind === "evidence") {
+        const src = d.source || {};
+        return `
+          <p class="ev-claim">${escapeHtml(d.claim)}</p>
+          <blockquote class="quote">${escapeHtml(d.quote)}</blockquote>
+          <div class="ev-line">
+            <a class="ev-source" href="${escapeHtml(src.url || "#")}" target="_blank" rel="noopener">${escapeHtml(src.title || "未标注来源")}</a>
+            <span>·</span><span>${escapeHtml(src.fetchedAt || "")}</span>
+          </div>
+          <div class="ev-verify">
+            <button class="ev-button" type="button" data-act="verify" data-value="true" aria-pressed="${d.verified === true}">已核实</button>
+            <button class="ev-button doubt" type="button" data-act="verify" data-value="false" aria-pressed="${d.verified === false}">存疑</button>
+          </div>
+        `;
+      }
+
+      if (node.kind === "table") {
+        const cols = d.columns || [];
+        const rows = sortedRows(node);
+        const sel = d.selection || [];
+        const head = cols.map(col => {
+          const active = d.sort && d.sort.key === col.key;
+          const arrow = active ? `<span class="arrow">${d.sort.dir === "desc" ? "↓" : "↑"}</span>` : "";
+          return `<th class="sortable" data-act="sort" data-key="${escapeHtml(col.key)}">${escapeHtml(col.label)}${arrow}</th>`;
+        }).join("");
+        const body = rows.map(row => {
+          const cells = cols.map(col => `<td>${escapeHtml(row[col.key])}</td>`).join("");
+          return `<tr class="${sel.indexOf(row.id) >= 0 ? "sel" : ""}" data-act="row" data-row="${escapeHtml(row.id)}">${cells}</tr>`;
+        }).join("");
+        const total = (d.rows || []).length;
+        return `
+          <div class="tbl-bar">
+            <input class="tbl-filter" type="text" value="${escapeHtml(d.filter || "")}" placeholder="筛选…" data-act="filter">
+            <span class="tbl-count">${rows.length}/${total} · 已选 ${sel.length}</span>
+          </div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr>${head}</tr></thead><tbody>${body || '<tr><td colspan="' + cols.length + '">无匹配行</td></tr>'}</tbody></table></div>
+        `;
+      }
+
+      if (node.kind === "plan") {
+        const items = d.items || [];
+        const done = items.filter(item => item.done).length;
+        const pct = items.length ? Math.round(done / items.length * 100) : 0;
+        const list = items.map(item => `
+          <li class="plan-item ${item.done ? "done" : ""}">
+            <input type="checkbox" data-act="check" data-item="${escapeHtml(item.id)}" ${item.done ? "checked" : ""} aria-label="完成">
+            <span class="plan-text">${escapeHtml(item.text)}</span>
+            <span class="owner ${item.owner === "agent" ? "agent" : ""}">${item.owner === "agent" ? "无极" : "我"}</span>
+          </li>
+        `).join("");
+        return `<div class="progress"><span style="width:${pct}%"></span></div><ul class="plan-list">${list}</ul>`;
+      }
+
+      if (node.kind === "decision") {
+        const opts = (d.options || []).map(opt => {
+          const selected = d.selected === opt.id;
+          const dim = d.selected && !selected;
+          const reason = (opt.pros || []).map(p => `+ ${escapeHtml(p)}`).concat((opt.cons || []).map(c => `− ${escapeHtml(c)}`)).join("　");
+          return `
+            <button class="option ${selected ? "selected" : ""} ${dim ? "dim" : ""}" type="button" data-act="choose" data-option="${escapeHtml(opt.id)}">
+              <span class="opt-top">
+                <span class="opt-label">${escapeHtml(opt.label)}</span>
+                ${opt.recommended ? '<span class="opt-rec">推荐</span>' : ""}
+              </span>
+              <span class="opt-sub">${escapeHtml(opt.sub)} · 置信 ${Math.round((opt.confidence || 0) * 100)}%</span>
+              <span class="opt-reason">${reason}</span>
+            </button>
+          `;
+        }).join("");
+        const spawn = d.selected && !d.spawned
+          ? `<div class="act-btns"><button class="act-btn" type="button" data-act="spawn-plan">展开为计划 →</button></div>`
+          : "";
+        return `
+          <p class="dec-q">${escapeHtml(d.question)}</p>
+          <div class="options">${opts}</div>
+          ${spawn}
+        `;
+      }
+
+      if (node.kind === "action") {
+        const s = d.state || "proposed";
+        const boxClass = s === "approved" || s === "done" ? "approved" : s === "rejected" ? "rejected" : "";
+        const flag = d.reversible
+          ? `<span class="act-flag ok"><i></i>可逆 · ${escapeHtml(d.reversibleNote || "")}</span>`
+          : `<span class="act-flag warn"><i></i>不可逆 · 执行后无法撤回</span>`;
+        let buttons = "";
+        if (s === "proposed") {
+          buttons = `
+            <div class="act-btns">
+              <button class="act-btn primary" type="button" data-act="approve">批准执行</button>
+              <button class="act-btn" type="button" data-act="reject">拒绝</button>
+            </div>
+          `;
+        } else if (s === "done") {
+          buttons = `<div class="act-result">已完成 · ${escapeHtml(d.result || "")}</div>`;
+        } else if (s === "rejected") {
+          buttons = `<div class="act-result">已拒绝，未产生任何副作用。</div>`;
+        } else {
+          buttons = `<div class="act-result">已批准，正在执行…</div>`;
+        }
+        return `
+          <div class="act-box ${boxClass}">
+            <div class="act-verb">${escapeHtml(d.verb)}</div>
+            <div class="act-target">${escapeHtml(d.target)}</div>
+            <div class="act-meta">
+              <span>${escapeHtml(d.scope || "")}</span>
+              ${flag}
+            </div>
+          </div>
+          ${buttons}
+        `;
+      }
+
+      return `<div class="shape-text">${escapeHtml(d.text || "")}</div>`;
+    }
+
+    function trustHint(node) {
+      const parts = [];
+      if (typeof node.confidence === "number") parts.push(`置信 ${Math.round(node.confidence * 100)}%`);
+      if (Array.isArray(node.sources) && node.sources.length) parts.push(`${node.sources.length} 条来源`);
+      if (parts.length) return parts.join(" · ");
+      return kindMeta[node.kind] ? kindMeta[node.kind].hint : "";
+    }
+
+    function createNode(data, options = {}) {
+      const item = { data, el: document.createElement("article") };
+      const el = item.el;
+      const meta = kindMeta[data.kind] || kindMeta.note;
+      el.className = `node kind-${data.kind} ${data.status === "draft" ? "draft" : ""}`;
+      el.dataset.id = String(data.id);
+      el.tabIndex = 0;
+      el.setAttribute("role", "group");
+      el.setAttribute("aria-label", `${meta.label}：${data.title}`);
+
+      el.innerHTML = `
+        <div class="node-head">
+          <span class="marker"></span>
+          <span class="node-type">${meta.label}</span>
+          ${data.status === "draft" ? '<span class="tag-draft">草案</span>' : ""}
+          <span class="node-time" data-role="time">${formatTime(data.updated)}</span>
+        </div>
+        <h2 class="node-title">${escapeHtml(data.title)}</h2>
+        <div class="node-shape">${renderShape(data)}</div>
+        <div class="node-foot">
+          <span class="node-hint" data-role="hint">${escapeHtml(trustHint(data))}</span>
+          <span class="node-actions">
+            ${data.status === "draft" ? '<button class="node-action confirm" type="button" data-act="confirm">确认</button>' : ""}
+            <button class="node-action" type="button" data-act="remove">移除</button>
+          </span>
+        </div>
+      `;
+
+      el.addEventListener("pointerdown", event => {
+        if (event.target.closest("button, input, select, textarea, a, [contenteditable], [data-act]")) {
+          selectNode(data.id);
+          return;
+        }
+        event.stopPropagation();
+        selectNode(data.id);
+        drag = {
+          mode: "node",
+          id: data.id,
+          startX: event.clientX,
+          startY: event.clientY,
+          originX: data.x,
+          originY: data.y
+        };
+        stage.setPointerCapture(event.pointerId);
+      });
+
+      el.addEventListener("keydown", event => {
+        if (event.target.closest("[contenteditable]")) return;
+        const step = event.shiftKey ? 48 : 14;
+        const moves = {
+          ArrowUp: [0, -step],
+          ArrowDown: [0, step],
+          ArrowLeft: [-step, 0],
+          ArrowRight: [step, 0]
+        };
+        if (moves[event.key]) {
+          event.preventDefault();
+          data.x += moves[event.key][0];
+          data.y += moves[event.key][1];
+          positionNode(item);
+          renderRelations();
+          scheduleSave();
+        }
+      });
+
+      world.appendChild(el);
+      nodes.set(String(data.id), item);
+      positionNode(item);
+
+      if (options.animate) {
+        el.classList.add("enter");
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove("enter")));
+      }
+
+      return item;
+    }
+
+    function refreshNode(id) {
+      const item = nodes.get(String(id));
+      if (!item) return;
+      const node = item.data;
+      const meta = kindMeta[node.kind] || kindMeta.note;
+      item.el.className = `node kind-${node.kind} ${node.status === "draft" ? "draft" : ""}`;
+      item.el.setAttribute("aria-label", `${meta.label}：${node.title}`);
+      item.el.querySelector(".node-shape").innerHTML = renderShape(node);
+      const head = item.el.querySelector(".node-head");
+      const tag = head.querySelector(".tag-draft");
+      if (node.status === "draft" && !tag) {
+        head.insertBefore(Object.assign(document.createElement("span"), { className: "tag-draft", textContent: "草案" }), head.querySelector(".node-time"));
+      } else if (node.status !== "draft" && tag) {
+        tag.remove();
+      }
+      item.el.querySelector('[data-role="hint"]').textContent = trustHint(node);
+      item.el.querySelector('[data-role="time"]').textContent = formatTime(node.updated);
+      const actions = item.el.querySelector(".node-actions");
+      const hasConfirm = !!actions.querySelector(".confirm");
+      if (node.status === "draft" && !hasConfirm) {
+        const btn = document.createElement("button");
+        btn.className = "node-action confirm";
+        btn.type = "button";
+        btn.dataset.act = "confirm";
+        btn.textContent = "确认";
+        actions.insertBefore(btn, actions.firstChild);
+      } else if (node.status !== "draft" && hasConfirm) {
+        actions.querySelector(".confirm").remove();
+      }
+      renderRelations();
+    }
+
+    function renderNodes() {
+      nodes.clear();
+      [...world.querySelectorAll(".node")].forEach(el => el.remove());
+      state.nodes.forEach(data => createNode(data));
+      const maxId = state.nodes.reduce((max, node) => Math.max(max, node.id), 0);
+      nodeId = maxId + 1;
+    }
+
+    function relationCoords(id) {
+      const item = nodes.get(String(id));
+      if (!item) return null;
+      return {
+        x: item.data.x + item.el.offsetWidth,
+        y: item.data.y + item.el.offsetHeight / 2
+      };
+    }
+
+    function renderRelations() {
+      const selected = selectedId ? Number(selectedId) : null;
+      relations.innerHTML = state.links.map(link => {
+        const a = relationCoords(link.from);
+        const b = relationCoords(link.to);
+        if (!a || !b) return "";
+        const near = selected === link.from || selected === link.to ? " near" : "";
+        const kind = linkMeta[link.kind] ? link.kind : "derived";
+        const bend = clamp(Math.abs(a.x - b.x) * .45, 48, 130);
+        return `<path class="relation k-${kind}${near}" d="M ${a.x} ${a.y} C ${a.x + bend} ${a.y}, ${b.x - bend} ${b.y}, ${b.x} ${b.y}"></path>`;
+      }).join("");
+    }
+
+    function selectNode(id) {
+      selectedId = id;
+      nodes.forEach(item => item.el.classList.toggle("selected", String(item.data.id) === String(id)));
+      renderRelations();
+    }
+
+    function removeNode(id) {
+      const item = nodes.get(String(id));
+      if (!item) return;
+      state.nodes = state.nodes.filter(node => node.id !== id);
+      state.links = state.links.filter(link => link.from !== id && link.to !== id);
+      item.el.remove();
+      nodes.delete(String(id));
+      if (String(selectedId) === String(id)) selectedId = null;
+      renderRelations();
+      scheduleSave();
+      showToast("对象已从空间移除");
+    }
+
+    function nextId() {
+      return nodeId++;
+    }
+
+    function addNode(node) {
+      node.id = node.id || nextId();
+      node.updated = Date.now();
+      if (!node.status) node.status = "draft";
+      if (!Array.isArray(node.sources)) node.sources = [];
+      state.nodes.push(node);
+      return createNode(node, { animate: true });
+    }
+
+    function findNode(id) {
+      return state.nodes.find(node => String(node.id) === String(id));
+    }
+
+    function makeTitle(text) {
+      const clean = text.replace(/\s+/g, " ").trim();
+      return clean.length > 16 ? `${clean.slice(0, 16)}…` : clean || "新的意图";
+    }
+
+    function spawnFromPrompt(text, mode) {
+      const subject = text.replace(/\s+/g, " ").trim();
+      const short = subject.length > 12 ? `${subject.slice(0, 12)}…` : subject;
+
+      if (mode === "research") {
+        return {
+          kind: "trace", title: `调研 · ${short}`, confidence: .6,
+          data: {
+            steps: [
+              { id: "s1", label: `${short}的判断标准是什么`, status: "done", tool: "planner", secs: 1.8, note: "先定义可比较的维度，再去找来源。" },
+              { id: "s2", label: "比较三组来源：官方资料 / 实践记录 / 反面案例", status: "running", tool: "web.search", secs: 0, note: "正在检索…" },
+              { id: "s3", label: "汇总为证据卡并标注可信度", status: "pending", tool: "writer", secs: 0, note: "" }
+            ],
+            open: []
+          }
+        };
+      }
+
+      if (mode === "write") {
+        return {
+          kind: "note", title: `草稿 · ${short}`, confidence: .55,
+          data: { text: `定位句：${subject}，但重点不是描述，而是让人立即理解价值。\n结构：场景 → 阻力 → 转变 → 证据。\n语气：克制、具体、少形容词。` }
+        };
+      }
+
+      if (mode === "execute") {
+        return {
+          kind: "action", title: `执行 · ${short}`, confidence: .62,
+          data: {
+            verb: "执行",
+            target: subject,
+            scope: "影响：待确认，执行前请核对范围",
+            reversible: false,
+            reversibleNote: "",
+            state: "proposed",
+            result: ""
+          }
+        };
+      }
+
+      return {
+        kind: "plan", title: `计划 · ${short}`, confidence: .58,
+        data: {
+          items: [
+            { id: "p1", text: `澄清「${short}」的目标与成功标准`, done: false, owner: "human" },
+            { id: "p2", text: "找出唯一关键路径，避免同时开三条线", done: false, owner: "agent" },
+            { id: "p3", text: "给每一步安排可检查的产物", done: false, owner: "human" }
+          ]
+        }
+      };
+    }
+
+    function summon(text) {
+      const base = screenToWorld(stage.clientWidth / 2 + 40, stage.clientHeight / 2 - 40);
+      const intent = addNode({
+        kind: "intent",
+        status: "confirmed",
+        title: makeTitle(text),
+        x: base.x - 180,
+        y: base.y - 60,
+        data: { goal: text, constraints: [] }
+      });
+
+      const shape = spawnFromPrompt(text, state.activeMode);
+      shape.x = intent.data.x + 400;
+      shape.y = intent.data.y - 40;
+      const spawned = addNode(shape);
+      spawned.el.classList.add("working");
+
+      state.links.push({ from: intent.data.id, to: spawned.data.id, kind: "derived" });
+      selectNode(spawned.data.id);
+      renderRelations();
+      scheduleSave();
+
+      setTimeout(() => {
+        spawned.el.classList.remove("working");
+        refreshNode(spawned.data.id);
+        scheduleSave();
+      }, 620);
+    }
+
+    function focusWorldPoint(x, y) {
+      state.camera.x = stage.clientWidth / 2 - x * state.camera.z;
+      state.camera.y = stage.clientHeight / 2 - y * state.camera.z;
+      state.camera.x = clamp(state.camera.x, -4200, 4200);
+      state.camera.y = clamp(state.camera.y, -3200, 3200);
+      applyCamera();
+    }
+
+    function fitView() {
+      if (!state.nodes.length) return;
+      const minX = Math.min(...state.nodes.map(node => node.x)) - 70;
+      const minY = Math.min(...state.nodes.map(node => node.y)) - 90;
+      const maxX = Math.max(...state.nodes.map(node => {
+        const item = nodes.get(String(node.id));
+        return node.x + (item ? item.el.offsetWidth : 330);
+      })) + 120;
+      const maxY = Math.max(...state.nodes.map(node => {
+        const item = nodes.get(String(node.id));
+        return node.y + (item ? item.el.offsetHeight : 240);
+      })) + 90;
+      const width = Math.max(maxX - minX, 420);
+      const height = Math.max(maxY - minY, 360);
+      const narrow = stage.clientWidth < 720;
+      const usableWidth = Math.max(stage.clientWidth - (narrow ? 72 : 230), 320);
+      const reservedBottom = narrow ? 230 : 170;
+      const usableHeight = Math.max(stage.clientHeight - 100 - reservedBottom, 320);
+      const nextZ = clamp(Math.min(usableWidth / width, usableHeight / height), .3, 1.15);
+      const centerY = stage.clientHeight / 2 - reservedBottom / 2 + 35;
+      state.camera.z = nextZ;
+      state.camera.x = stage.clientWidth / 2 - (minX + width / 2) * nextZ;
+      state.camera.y = centerY - (minY + height / 2) * nextZ;
+      applyCamera();
+      scheduleSave();
+    }
+
+    function zoomAt(clientX, clientY, factor) {
+      const rect = stage.getBoundingClientRect();
+      const px = clientX - rect.left;
+      const py = clientY - rect.top;
+      const nextZ = clamp(state.camera.z * factor, .3, 2.2);
+      state.camera.x = px - (px - state.camera.x) * (nextZ / state.camera.z);
+      state.camera.y = py - (py - state.camera.y) * (nextZ / state.camera.z);
+      state.camera.z = nextZ;
+      applyCamera();
+      scheduleSave();
+    }
+
+    function resetField() {
+      state = seededField();
+      selectedId = null;
+      renderNodes();
+      renderRelations();
+      applyCamera();
+      scheduleSave();
+      showToast("空间已重置");
+    }
+
+    function handleShapeAction(event) {
+      const el = event.target.closest("[data-act]");
+      if (!el) return;
+      const host = el.closest(".node");
+      if (!host) return;
+      const node = findNode(host.dataset.id);
+      if (!node) return;
+      const act = el.dataset.act;
+
+      if (act === "remove") {
+        removeNode(node.id);
+        return;
+      }
+
+      if (act === "confirm") {
+        node.status = "confirmed";
+        node.updated = Date.now();
+        refreshNode(node.id);
+        scheduleSave();
+        showToast("草案已并入工作区");
+        return;
+      }
+
+      if (act === "toggle-step") {
+        const open = new Set(node.data.open || []);
+        const id = el.dataset.step;
+        if (open.has(id)) open.delete(id); else open.add(id);
+        node.data.open = [...open];
+        refreshNode(node.id);
+        scheduleSave();
+        return;
+      }
+
+      if (act === "verify") {
+        node.data.verified = el.dataset.value === "true";
+        node.updated = Date.now();
+        refreshNode(node.id);
+        scheduleSave();
+        return;
+      }
+
+      if (act === "sort") {
+        const key = el.dataset.key;
+        const prev = node.data.sort || {};
+        node.data.sort = { key, dir: prev.key === key && prev.dir === "asc" ? "desc" : "asc" };
+        refreshNode(node.id);
+        scheduleSave();
+        return;
+      }
+
+      if (act === "row") {
+        const id = el.dataset.row;
+        const sel = new Set(node.data.selection || []);
+        if (sel.has(id)) sel.delete(id); else sel.add(id);
+        node.data.selection = [...sel];
+        refreshNode(node.id);
+        scheduleSave();
+        return;
+      }
+
+      if (act === "check") {
+        const item = (node.data.items || []).find(entry => entry.id === el.dataset.item);
+        if (item) item.done = el.checked;
+        node.updated = Date.now();
+        refreshNode(node.id);
+        scheduleSave();
+        return;
+      }
+
+      if (act === "choose") {
+        node.data.selected = node.data.selected === el.dataset.option ? null : el.dataset.option;
+        node.updated = Date.now();
+        refreshNode(node.id);
+        scheduleSave();
+        return;
+      }
+
+      if (act === "spawn-plan") {
+        const option = (node.data.options || []).find(entry => entry.id === node.data.selected);
+        const plan = addNode({
+          kind: "plan",
+          title: `${option ? option.label : "选定"} · 展开计划`,
+          x: node.x + 400,
+          y: node.y + 230,
+          confidence: .7,
+          sources: [node.id],
+          data: {
+            items: [
+              { id: "q1", text: `围绕「${option ? option.label : "选定分支"}」确认前置条件`, done: false, owner: "human" },
+              { id: "q2", text: "拆出三个不超过 25 分钟的动作", done: false, owner: "agent" },
+              { id: "q3", text: "设定完成定义与检查点", done: false, owner: "human" }
+            ]
+          }
+        });
+        node.data.spawned = true;
+        state.links.push({ from: node.id, to: plan.data.id, kind: "derived" });
+        refreshNode(node.id);
+        selectNode(plan.data.id);
+        renderRelations();
+        scheduleSave();
+        showToast("决策已展开为计划");
+        return;
+      }
+
+      if (act === "approve" || act === "reject") {
+        node.data.state = act === "approve" ? "approved" : "rejected";
+        node.updated = Date.now();
+        refreshNode(node.id);
+        scheduleSave();
+        if (act === "approve") {
+          setTimeout(() => {
+            node.data.state = "done";
+            node.data.result = "已完成，确认号 WJ-2481。可在 24h 内免费取消。";
+            node.updated = Date.now();
+            refreshNode(node.id);
+            scheduleSave();
+          }, 900);
+        }
+        return;
+      }
+
+      if (act === "add-chip") {
+        const text = window.prompt("新增约束", "");
+        if (!text) return;
+        node.data.constraints = (node.data.constraints || []).concat(text.trim());
+        refreshNode(node.id);
+        scheduleSave();
+        return;
+      }
+
+      if (act === "drop-chip") {
+        const index = Number(el.dataset.index);
+        node.data.constraints = (node.data.constraints || []).filter((_, i) => i !== index);
+        refreshNode(node.id);
+        scheduleSave();
+      }
+    }
+
+    world.addEventListener("click", handleShapeAction);
+
+    world.addEventListener("change", event => {
+      const el = event.target.closest('[data-act="check"]');
+      if (!el) return;
+      const host = el.closest(".node");
+      if (!host) return;
+      const node = findNode(host.dataset.id);
+      if (!node) return;
+      const item = (node.data.items || []).find(entry => entry.id === el.dataset.item);
+      if (item) item.done = el.checked;
+      node.updated = Date.now();
+      refreshNode(node.id);
+      scheduleSave();
+    });
+
+    world.addEventListener("input", event => {
+      const el = event.target.closest("[data-act], [data-field]");
+      if (!el) return;
+      const host = el.closest(".node");
+      if (!host) return;
+      const node = findNode(host.dataset.id);
+      if (!node) return;
+
+      if (el.dataset.act === "filter") {
+        node.data.filter = el.value;
+        const wrap = host.querySelector(".node-shape");
+        wrap.innerHTML = renderShape(node);
+        const next = wrap.querySelector(".tbl-filter");
+        if (next) {
+          next.focus();
+          next.setSelectionRange(el.value.length, el.value.length);
+        }
+        scheduleSave();
+        return;
+      }
+
+      if (el.dataset.field) {
+        node.data[el.dataset.field] = el.textContent.trim();
+        node.updated = Date.now();
+        const timeEl = host.querySelector('[data-role="time"]');
+        if (timeEl) timeEl.textContent = formatTime(node.updated);
+        renderRelations();
+        scheduleSave();
+      }
+    });
+
+    let drag = null;
+
+    stage.addEventListener("pointerdown", event => {
+      if (event.button !== 0 && event.pointerType === "mouse") return;
+      if (event.target.closest(".node")) return;
+      drag = {
+        mode: "pan",
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: state.camera.x,
+        originY: state.camera.y
+      };
+      stage.classList.add("dragging");
+      stage.setPointerCapture(event.pointerId);
+    });
+
+    stage.addEventListener("pointermove", event => {
+      if (!drag) return;
+      if (drag.mode === "pan") {
+        state.camera.x = drag.originX + event.clientX - drag.startX;
+        state.camera.y = drag.originY + event.clientY - drag.startY;
+        applyCamera();
+        return;
+      }
+      const item = nodes.get(String(drag.id));
+      if (!item) return;
+      item.data.x = drag.originX + (event.clientX - drag.startX) / state.camera.z;
+      item.data.y = drag.originY + (event.clientY - drag.startY) / state.camera.z;
+      positionNode(item);
+      renderRelations();
+    });
+
+    stage.addEventListener("pointerup", () => {
+      if (drag) scheduleSave();
+      drag = null;
+      stage.classList.remove("dragging");
+    });
+
+    stage.addEventListener("pointercancel", () => {
+      drag = null;
+      stage.classList.remove("dragging");
+    });
+
+    stage.addEventListener("dblclick", event => {
+      if (event.target.closest(".node")) return;
+      const point = screenToWorld(event.clientX, event.clientY);
+      const item = addNode({
+        kind: "note", status: "confirmed", title: "新笔记",
+        x: point.x - 120, y: point.y - 60,
+        data: { text: "" }
+      });
+      selectNode(item.data.id);
+      const body = item.el.querySelector(".shape-text");
+      if (body) body.focus();
+      scheduleSave();
+    });
+
+    stage.addEventListener("wheel", event => {
+      event.preventDefault();
+      zoomAt(event.clientX, event.clientY, Math.exp(-event.deltaY * .0016));
+    }, { passive: false });
+
+    document.addEventListener("click", event => {
+      const modeButton = event.target.closest(".mode");
+      if (!modeButton) return;
+      state.activeMode = modeButton.dataset.mode;
+      document.querySelectorAll(".mode").forEach(button => {
+        button.setAttribute("aria-pressed", String(button === modeButton));
+      });
+      scheduleSave();
+    });
+
+    document.addEventListener("keydown", event => {
+      const editing = event.target.closest('textarea, input, [contenteditable="true"], [contenteditable="plaintext-only"]');
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        promptEl.focus();
+        return;
+      }
+      if (editing) {
+        if (event.key === "Escape") event.target.blur();
+        return;
+      }
+      if (event.key === "Escape") {
+        selectNode(null);
+        return;
+      }
+      if (event.key.toLowerCase() === "n") {
+        const point = screenToWorld(stage.clientWidth / 2, stage.clientHeight / 2);
+        const item = addNode({
+          kind: "note", status: "confirmed", title: "新笔记",
+          x: point.x - 160, y: point.y - 80,
+          data: { text: "" }
+        });
+        selectNode(item.data.id);
+        scheduleSave();
+        return;
+      }
+      if (event.key.toLowerCase() === "f") {
+        fitView();
+        return;
+      }
+      if ((event.key === "Backspace" || event.key === "Delete") && selectedId) {
+        event.preventDefault();
+        removeNode(selectedId);
+      }
+    });
+
+    document.getElementById("addNote").addEventListener("click", () => {
+      const point = screenToWorld(stage.clientWidth / 2 - 80, stage.clientHeight / 2 - 80);
+      const item = addNode({
+        kind: "note", status: "confirmed", title: "新笔记",
+        x: point.x, y: point.y,
+        data: { text: "" }
+      });
+      selectNode(item.data.id);
+      scheduleSave();
+      showToast("笔记已放置在空间中心");
+    });
+
+    document.getElementById("addIntent").addEventListener("click", () => {
+      promptEl.focus();
+      showToast("输入目标后召唤无极");
+    });
+
+    document.getElementById("fitView").addEventListener("click", fitView);
+    document.getElementById("resetButton").addEventListener("click", resetField);
+    document.getElementById("zoomIn").addEventListener("click", () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, 1.16));
+    document.getElementById("zoomOut").addEventListener("click", () => zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, .86));
+
+    document.getElementById("summonForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const text = promptEl.value.trim();
+      if (!text) {
+        showToast("先写下你想推进的目标");
+        promptEl.focus();
+        return;
+      }
+      summon(text);
+      promptEl.value = "";
+      promptEl.style.height = "auto";
+    });
+
+    promptEl.addEventListener("input", () => {
+      promptEl.style.height = "auto";
+      promptEl.style.height = `${Math.min(promptEl.scrollHeight, 112)}px`;
+    });
+
+    window.addEventListener("resize", () => {
+      applyCamera();
+      renderRelations();
+    });
+
+    state.camera.z = clamp(state.camera.z, .3, 2.2);
+    document.querySelectorAll(".mode").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.mode === state.activeMode));
+    });
+
+    renderNodes();
+    renderRelations();
+    fitView();
+  </script>
+</body>
+</html>
