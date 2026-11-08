@@ -669,7 +669,7 @@ table.data tr.top td.sc { color: var(--go); }
         <svg class="wfedges" id="wfedges" aria-hidden="true"></svg>
         <div id="wfnodes"></div>
       </div>
-      <div class="wfhint">拖拽平移 · 点节点看时序日志与操作</div>
+      <div class="wfhint">横向推进 · 分叉即并行 · 点节点看日志与操作</div>
       <div class="wfcam">
         <button id="wfz-out" aria-label="缩小">−</button><span class="zl" id="wfz-level">100%</span><button id="wfz-in" aria-label="放大">＋</button><button id="wfz-reset">复位</button>
       </div>
@@ -784,15 +784,15 @@ table.data tr.top td.sc { color: var(--go); }
       steps: [
         ["扫赛道账号", "scout", "done", "", null, [["表", "赛道账号清单 · 38 行"]], [["10:12", "扫「AI 科普」双关键词"], ["10:18", "命中 38 个同类账号"], ["10:26", "清单产出，交打分"]]],
         ["选题打分", "tally", "done", "", null, [["表", "选题打分表 · 12 行"]], [["10:31", "评分模型：热度×竞争度×契合度"], ["10:44", "12 行入表 · 首推 8.9 分"]]],
-        ["定选题方向", "me", "call", "三选一"], ["写首篇脚本", "quill", "idle", ""],
-        ["配图与封面", "lens", "idle", ""], ["多平台分发", "herald", "idle", ""]
+        ["定选题方向", "me", "call", "三选一"], ["写首篇脚本", "quill", "idle", "", null, null, null, [2]],
+        ["配图与封面", "lens", "idle", "", null, null, null, [2]], ["多平台分发", "herald", "idle", "", null, null, null, [3, 4]]
       ],
       logs: [["10:12", "Scout 扫「AI 科普」双关键词"], ["10:18", "命中 38 个同类账号"], ["10:26", "《赛道账号清单》产出"], ["10:44", "Tally 打分完成 · 首推 8.9 分"], ["11:54", "请示", "三个候选方向待你定"]], flow: true },
     { id: "T-07", name: "东京五日行程规划", s: "run", crew: ["scout", "quill", "me"], pct: 40, done: 2, total: 5,
       latest: ["09:42", "Quill 写行程草案 · 60%"], arts: [["表", "机酒比价"]],
       steps: [["检索机酒", "scout", "done", "", null, [["表", "机酒比价 · 6 方案"]], [["08:40", "检索 24 个候选"], ["09:05", "按 ¥8,000 预算筛出 6 方案"]]],
         ["景点打分", "tally", "done", "", null, [["表", "景点分 · 18 选 9"]], [["09:10", "打分完成"]]],
-        ["写行程草案", "quill", "run", "60%", "60%", [], [["09:42", "写到第二节 · 60%"]]], ["逐日排程", "me", "idle", ""], ["出行程表", "tool", "idle", ""]],
+        ["写行程草案", "quill", "run", "60%", "60%", [], [["09:42", "写到第二节 · 60%"]], [0, 1]], ["逐日排程", "me", "idle", ""], ["出行程表", "tool", "idle", ""]],
       logs: [["08:40", "Scout 检索机酒 · 24 个候选"], ["09:10", "Tally 景点打分 · 18 选 9"], ["09:42", "Quill 写草案 · 60%"]] },
     { id: "T-04", name: "社群答疑草拟", s: "run", crew: ["quill"], pct: 33, done: 1, total: 3,
       latest: ["09:28", "已草拟 9 / 12 条回复"], arts: [["记", "答疑话术"]],
@@ -811,7 +811,7 @@ table.data tr.top td.sc { color: var(--go); }
       logs: [["07:40", "拆解旧模板 · 12 张"], ["08:05", "试排 3 版完成"], ["08:14", "报错", "出图额度用尽 · 停线"]] },
     { id: "T-03", name: "竞品调研：Flowith", s: "run", crew: ["scout", "tally"], pct: 67, done: 4, total: 6,
       latest: ["09:36", "Tally 归因其增长来源"], arts: [["稿", "调研笔记"], ["表", "功能对比"]],
-      steps: [["检索报道", "scout", "done", ""], ["读定价页", "scout", "done", ""], ["拆功能", "scout", "done", ""], ["增长归因", "tally", "run", ""], ["出对比表", "tally", "idle", ""], ["写结论", "quill", "idle", ""]],
+      steps: [["检索报道", "scout", "done", ""], ["读定价页", "scout", "done", ""], ["拆功能", "scout", "done", "", null, null, null, [0]], ["增长归因", "tally", "run", "", null, null, null, [0, 1]], ["出对比表", "tally", "idle", "", null, null, null, [2, 3]], ["写结论", "quill", "idle", "", null, null, null, [4]]],
       logs: [["07:50", "Scout 检索 32 篇报道"], ["09:36", "Tally 归因 · 分享卡点击率是均值 2 倍"]] },
     { id: "T-02", name: "星球周报分发", s: "done", crew: [], pct: 100, done: 4, total: 4,
       latest: ["07:20", "已推送 · 明日 08:00 自动复跑"], arts: [["稿", "周报 44 期"], ["图", "触达图"]],
@@ -981,7 +981,7 @@ table.data tr.top td.sc { color: var(--go); }
       renderTaskLists(); renderFilters(); renderHome();
       openTaskView(t);
     }));
-    wfCam.x = 46; wfCam.y = 14; wfCam.z = Math.min(1, 0.62 + 0.38 * (6 / Math.max(6, t.steps.length)));
+    wfCam.x = 24; wfCam.y = 16; wfCam.z = 1;
     renderWorkflow();
     renderWfPanel();
   }
@@ -989,30 +989,55 @@ table.data tr.top td.sc { color: var(--go); }
     const t = curTask;
     $("#wf-meta").innerHTML = `${tagHtml(t.s)}<span class="prog">${t.pct}%</span><span>${t.done} / ${t.total} 步</span><span>·</span><span>执行 ${t.crew.map((c) => ROSTER[c].name).join("、") || "—"}</span>`;
     const nodesWrap = $("#wfnodes"), edges = $("#wfedges");
-    const STEP_H = 108, X = 90, AX = 372;
+    const steps = t.steps;
+    const depsOf = (i) => (steps[i][7] != null && steps[i][7].length) ? steps[i][7] : (i > 0 ? [i - 1] : []);
+    const layerMemo = steps.map(() => -1);
+    const lay = (i) => {
+      if (layerMemo[i] >= 0) return layerMemo[i];
+      const ds = depsOf(i);
+      layerMemo[i] = ds.length ? Math.max(...ds.map(lay)) + 1 : 0;
+      return layerMemo[i];
+    };
+    steps.forEach((_, i) => lay(i));
+    const layers = [];
+    steps.forEach((_, i) => { (layers[layerMemo[i]] ||= []).push(i); });
+    const COL_W = 268, NODE_W = 224, NODE_H = 64, GAP = 28, C0 = 70, CY = 240;
+    const pos = {};
+    layers.forEach((col) => {
+      col.forEach((i, k) => {
+        pos[i] = { x: C0 + layerMemo[i] * COL_W, y: CY + (k - (col.length - 1) / 2) * (NODE_H + GAP) };
+      });
+    });
+    const maxH = Math.max(CY * 2 + Math.max(...layers.map((c) => c.length)) * (NODE_H + GAP) + 160, 560);
+    $("#wfboard").style.height = maxH + "px";
+    $("#wfboard").style.width = (C0 + layers.length * COL_W + 60) + "px";
     let html = "", ehtml = "";
-    const arts = [];
-    t.steps.forEach((s, i) => {
-      const y = 50 + i * STEP_H;
-      const st = s[2];
+    steps.forEach((s, i) => {
+      const p = pos[i], st = s[2];
       const note = s[3] || STATUS[st][0];
       const prog = st === "run" ? (s[4] || "50%") : st === "done" ? "100%" : "0%";
-      html += `<div class="wfnode" data-i="${i}" data-s="${st}" style="left:${X}px; top:${y}px; --d:${i * 55}ms" tabindex="0" role="button" aria-label="${esc(s[0])}">
+      html += `<div class="wfnode" data-i="${i}" data-s="${st}" style="left:${p.x}px; top:${p.y}px; --d:${i * 55}ms" tabindex="0" role="button" aria-label="${esc(s[0])}">
         <div class="wfn-top"><i class="lamp"></i><span class="wfn-name">${esc(s[0])}</span></div>
         <div class="wfn-sub"><span class="mk${s[1] === "me" ? " me" : ""}">${ROSTER[s[1]] ? ROSTER[s[1]].mk : "具"}</span><span>${note}</span>${st === "run" || st === "done" ? `<span class="bar"><i style="width:${prog}"></i></span><span>${prog}</span>` : ""}</div>
       </div>`;
-      if (i > 0) {
-        const cls = st === "idle" ? "" : (EDGE[st] || "");
-        ehtml += `<line x1="${X + 60}" y1="${y - STEP_H + 64}" x2="${X + 60}" y2="${y}" class="${cls}" />`;
-      }
       (s[5] || []).forEach(([k, n], ai) => {
-        const ay = y + 6 + ai * 0;
-        html += `<div class="wfart" data-i="${i}" style="left:${AX}px; top:${y}px; --d:${i * 55 + 90}ms" tabindex="0" role="button" aria-label="产物 ${esc(n)}"><span class="kind">${k}</span><span class="an">${esc(n)}</span></div>`;
-        ehtml += `<line x1="${X + 222}" y1="${y + 20}" x2="${AX}" y2="${y + 20}" class="${st === "done" ? "e-done" : ""}" />`;
+        html += `<div class="wfart" data-i="${i}" style="left:${p.x + 2}px; top:${p.y + NODE_H + 12 + ai * 50}px; --d:${i * 55 + 90}ms" tabindex="0" role="button" aria-label="产物 ${esc(n)}"><span class="kind">${k}</span><span class="an">${esc(n)}</span></div>`;
+      });
+    });
+    steps.forEach((s, i) => {
+      const p = pos[i];
+      depsOf(i).forEach((d) => {
+        const pd = pos[d];
+        const cls = s[2] === "idle" ? "" : (EDGE[s[2]] || "");
+        ehtml += `<line x1="${pd.x + NODE_W}" y1="${pd.y + 32}" x2="${p.x}" y2="${p.y + 32}" class="${cls}" />`;
       });
     });
     nodesWrap.innerHTML = html;
     edges.innerHTML = ehtml;
+    const bw = 70 + layers.length * COL_W + 60;
+    const fitZ = Math.min(1, Math.max(0.5, (window.innerWidth - 390) / bw, (wfCanvas.clientHeight - 30) / maxH) || 0.7);
+    wfCam.z = fitZ;
+    wfCam.x = 24; wfCam.y = 16;
     wfApply();
     $$("#wfnodes .wfnode").forEach((n) => {
       const open = () => { wfSel = +n.dataset.i; $$("#wfnodes .wfnode").forEach((x) => x.classList.remove("sel")); n.classList.add("sel"); renderWfPanel(); };
