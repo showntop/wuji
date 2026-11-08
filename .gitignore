@@ -3,3 +3,5 @@
 .workbuddy/
 .playwright-mcp/
 review/
+node_modules/
+dist/

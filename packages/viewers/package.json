@@ -1,0 +1,14 @@
+{
+  "name": "@wuji/viewers",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@wuji/model": "workspace:*"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "check": "tsc --noEmit"
+  }
+}

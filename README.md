@@ -40,3 +40,13 @@ The seeded field walks one full chain: Intent → Trace → Evidence ×3 → Tab
 - [`BLUEPRINT.md`](../BLUEPRINT.md) — V2 总体方案蓝图（体·相·用架构、卷/野/谱视图、路线图）
 - [`ARCHITECTURE.md`](../ARCHITECTURE.md) — 系统架构：能力与资源 / harness / Agent 编制池 / 工作台，四层三横切面
 - [`INTERFACE.md`](../INTERFACE.md) — 交互形态：一坊一桌一账一栏，壳与台的形制
+
+## Engineering (M0+)
+
+The buildable spec lives in [`ENGINEERING.md`](ENGINEERING.md) — data model, monorepo layout, milestones. Demo surfaces in `shell/` stay frozen until the engineering build reaches M1 parity.
+
+```bash
+pnpm install
+pnpm dev        # apps/web @ :5180
+pnpm check      # tsc + tests across all packages
+```

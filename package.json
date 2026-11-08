@@ -1,0 +1,12 @@
+{
+  "name": "wuji",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @wuji/web dev",
+    "build": "pnpm -r --if-present build",
+    "check": "pnpm -r --if-present check"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

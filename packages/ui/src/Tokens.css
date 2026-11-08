@@ -1,0 +1,20 @@
+/* 钢灰工坊 tokens —— 视觉正典（shell/DESIGN.md），供全部包引用 */
+:root {
+  /* 表面层级（dark-on-dark 修复：层间 >=10 RGB） */
+  --floor: #141412; --floor-2: #1e1e1b; --floor-3: #2a2a25;
+  --beam: #0d0d0c; --steel: #34342f; --steel-2: #45453f;
+  --plate: #e4e0d3; --plate-2: #cfcaba; --plate-ink: #1b1b19;
+  --ink: #f2efe7; --ink-2: #c0bdb4; --ink-3: #8f8d84; --ink-25: #a3a099;
+  --line: rgba(242, 239, 231, .10); --line-2: rgba(242, 239, 231, .20);
+  /* 状态五色（永远配文字标签，色不是唯一通道） */
+  --go: #3ad16f; --go-deep: #1b7a40;
+  --call: #ffc21a; --call-deep: #a87a00;
+  --stop: #ff4a35; --stop-deep: #9c1f12;
+  --hold: #a9c3d6; --done: #8f8c83; --off: #34342f;
+  /* 字体 */
+  --f-cond: "Barlow Condensed", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --f-body: "Barlow", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --f-seg: "DSEG7", "Barlow Condensed", monospace;
+  /* 动效 */
+  --ease: cubic-bezier(.16, 1, .3, 1);
+}
