@@ -16,11 +16,11 @@
   font-display: swap;
 }
 :root {
-  --floor: #161614; --floor-2: #1c1c1a; --floor-3: #232320;
-  --beam: #0f0f0e; --steel: #2c2c29; --steel-2: #3a3a36;
-  --plate: #dcd8cc; --plate-2: #c9c4b5; --plate-ink: #1b1b19;
-  --ink: #efece4; --ink-2: #b9b6ad; --ink-3: #85837b; --ink-25: #9d9a92;
-  --line: rgba(239,236,228,.09); --line-2: rgba(239,236,228,.16);
+  --floor: #141412; --floor-2: #1e1e1b; --floor-3: #2a2a25;
+  --beam: #0d0d0c; --steel: #34342f; --steel-2: #45453f;
+  --plate: #e4e0d3; --plate-2: #cfcaBA; --plate-ink: #1b1b19;
+  --ink: #f2efe7; --ink-2: #c0bdb4; --ink-3: #8f8d84; --ink-25: #a3a099;
+  --line: rgba(242, 239, 231, .10); --line-2: rgba(242, 239, 231, .20);
   --go: #3ad16f; --go-deep: #1b7a40; --call: #ffc21a; --call-deep: #a87a00;
   --stop: #ff4a35; --stop-deep: #9c1f12; --hold: #a9c3d6; --done: #8f8c83; --off: #34342f;
   --f-cond: "Barlow Condensed", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
@@ -118,9 +118,10 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
 .legend { display: flex; gap: 13px; margin-left: auto; }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-.sec-h { display: flex; align-items: baseline; gap: 12px; padding: 24px 28px 10px; flex-wrap: wrap; }
-.sec-h h2 { margin: 0; font-family: var(--f-cond); font-weight: 700; font-size: 21px; letter-spacing: .02em; }
-.sec-h .count { font-family: var(--f-cond); font-weight: 700; font-size: 15px; color: var(--call); }
+.sec-h { display: flex; align-items: baseline; gap: 12px; padding: 30px 28px 12px; flex-wrap: wrap; }
+.sec-h h2 { margin: 0; font-family: var(--f-cond); font-weight: 700; font-size: 22px; letter-spacing: .02em; }
+main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:first-child { padding-top: 18px; }
+.sec-h .count { font-family: var(--f-cond); font-weight: 700; font-size: 16px; color: var(--call); }
 .sec-note { font-family: var(--f-cond); font-size: 13px; color: var(--ink-25); letter-spacing: .04em; }
 .sec-h .more { margin-left: auto; }
 .plate {
@@ -198,8 +199,9 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
 
 /* ---------- 待我处理（工作台首段） ---------- */
 .attend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 0 28px; }
-.acard { display: flex; flex-direction: column; gap: 7px; background: var(--floor-2); border-top: 2px solid var(--call); padding: 13px 15px 12px; }
+.acard { display: flex; flex-direction: column; gap: 7px; background: var(--floor-2); border: 1px solid var(--line-2); border-top: 2px solid var(--call); padding: 13px 15px 12px; }
 .acard[data-t="决策"] { border-top-color: var(--plate); }
+.acard[data-t="决策"] .acard-top .tt { color: var(--plate); }
 .acard-top { display: flex; align-items: center; gap: 8px; font-family: var(--f-cond); font-size: 12.5px; letter-spacing: .04em; color: var(--ink-25); }
 .acard-top .tt { font-weight: 700; color: var(--ink-2); }
 .acard-top .mins { margin-left: auto; }
@@ -215,9 +217,9 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
 .ac-mini {
   flex: 1 1 0; min-width: 150px;
   display: flex; flex-direction: column; gap: 5px; text-align: left;
-  background: var(--floor-3); border: 0; border-top: 2px solid var(--steel-2);
+  background: var(--floor-3); border: 1px solid var(--line); border-top: 2px solid var(--steel-2);
   padding: 10px 12px 9px;
-  transition: background .25s;
+  transition: background .25s, border-color .25s;
   animation: risein .5s var(--ease) both; animation-delay: calc(var(--d, 0) * 1ms);
 }
 .ac-mini:hover { background: var(--floor-2); }
