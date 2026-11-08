@@ -389,6 +389,53 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
 .call-btn.clear { background: var(--steel); color: var(--ink-2); box-shadow: none; }
 .call-btn.clear .beacon { background: var(--go); animation: none; }
 
+/* -------- 总账 -------- */
+.ledger {
+  position: fixed; top: 0; left: 0; bottom: 0; width: min(560px, 100vw); z-index: 50;
+  background: var(--floor-2); border-right: 1px solid var(--line-2);
+  transform: translateX(-102%); transition: transform .45s var(--ease);
+  display: flex; flex-direction: column;
+  box-shadow: 18px 0 40px rgba(0,0,0,.45);
+}
+.ledger.on { transform: none; }
+.lg-head { padding: 20px 24px 12px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 14px; }
+.lg-title { font-family: var(--f-cond); font-weight: 700; font-size: 23px; line-height: 1.1; }
+.lg-sub { font-family: var(--f-cond); font-size: 13px; color: #9d9a92; letter-spacing: .03em; margin-top: 3px; }
+.lg-tabs { display: flex; background: var(--steel); padding: 2px; margin-left: auto; }
+.lg-tabs button { border: 0; background: transparent; padding: 6px 13px; font-family: var(--f-cond); font-weight: 600; font-size: 14px; letter-spacing: .04em; color: var(--ink-2); }
+.lg-tabs button[aria-pressed="true"] { background: var(--floor-3); color: var(--ink); }
+.lg-close { margin-left: 6px; }
+.lg-body { flex: 1; overflow-y: auto; padding: 14px 24px 30px; }
+.lg-filters { display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap; }
+.lg-fchip { border: 1px solid var(--line-2); background: var(--floor-3); padding: 3px 10px; font-family: var(--f-cond); font-weight: 600; font-size: 12.5px; letter-spacing: .04em; color: var(--ink-2); transition: all .2s; }
+.lg-fchip[aria-pressed="true"] { background: var(--plate); color: var(--plate-ink); border-color: var(--plate); }
+.levent { display: grid; grid-template-columns: 44px 26px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 8px 4px; border-top: 1px solid var(--line); font-size: 13px; }
+.levent time { font-family: var(--f-cond); font-size: 13px; color: var(--ink-3); letter-spacing: .03em; }
+.levent .mk { min-width: 20px; height: 17px; font-size: 11px; }
+.levent .lt { min-width: 0; color: var(--ink-2); line-height: 1.45; }
+.levent .lt b { color: var(--ink); font-weight: 600; }
+.levent .lt .plate.sm { margin-right: 4px; vertical-align: 1px; }
+.levent .lk { font-family: var(--f-cond); font-weight: 700; font-size: 11.5px; letter-spacing: .06em; color: var(--ink-3); padding: 1px 6px; background: var(--floor-3); white-space: nowrap; }
+.levent .lk.run { color: var(--go); } .levent .lk.ap { color: var(--call); } .levent .lk.judge { color: var(--plate); background: var(--steel-2); } .levent .lk.sys { color: var(--hold); }
+.lrel { display: grid; grid-template-columns: minmax(0, 1fr) 60px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 9px 4px; border-top: 1px solid var(--line); font-size: 13px; }
+.lrel .side { min-width: 0; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lrel .side b { font-family: var(--f-cond); font-weight: 700; font-size: 12px; color: var(--ink-3); margin-right: 4px; }
+.lrel .kind { text-align: center; font-family: var(--f-cond); font-weight: 700; font-size: 11.5px; letter-spacing: .04em; color: var(--hold); background: var(--floor-3); padding: 2px 6px; }
+.lrel .kind.binds { color: var(--go); }
+.lrel .st { font-family: var(--f-cond); font-size: 12px; color: var(--ink-3); }
+.lnum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); margin-bottom: 16px; }
+.lnum-grid div { background: var(--floor-2); padding: 10px 12px; }
+.lnum-grid dt { font-family: var(--f-cond); font-size: 12px; color: #9d9a92; letter-spacing: .05em; }
+.lnum-grid dd { margin: 3px 0 0; font-family: var(--f-seg); font-weight: 700; font-size: 20px; color: var(--call); }
+.lnum-grid dd.green { color: var(--go); }
+.lnum-grid dd small { font-family: var(--f-cond); font-weight: 500; font-size: 12px; color: var(--ink-3); margin-left: 4px; }
+.lbar { display: grid; grid-template-columns: 120px 1fr 64px; gap: 10px; align-items: center; padding: 6px 0; font-family: var(--f-cond); font-size: 13.5px; color: var(--ink-2); }
+.lbar .track { height: 12px; background: var(--floor-3); position: relative; }
+.lbar .track i { position: absolute; inset: 0 auto 0 0; background: var(--steel-2); }
+.lbar.me .track i { background: rgba(255, 194, 26, .75); }
+.lbar .val { text-align: right; color: var(--ink-3); font-size: 12.5px; }
+.lh { font-family: var(--f-cond); font-weight: 700; font-size: 14px; letter-spacing: .05em; color: var(--ink-2); margin: 18px 0 8px; }
+
 /* -------- summon -------- */
 .summon-zone {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
@@ -873,6 +920,21 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
 </div>
 
 <div class="scrim" id="scrim"></div>
+<aside class="ledger" id="ledger" aria-label="总账">
+  <div class="lg-head">
+    <div>
+      <div class="lg-title">总账</div>
+      <div class="lg-sub">全系统可审计 · 第 44 周</div>
+    </div>
+    <div class="lg-tabs" role="group" aria-label="镜片">
+      <button data-lens="events" aria-pressed="true">事件</button>
+      <button data-lens="rels" aria-pressed="false">引用</button>
+      <button data-lens="nums" aria-pressed="false">数字</button>
+    </div>
+    <button class="ad-close lg-close" id="ledger-close" aria-label="关闭">×</button>
+  </div>
+  <div class="lg-body" id="ledger-body"></div>
+</aside>
 <aside class="adrawer desk" id="desk" aria-label="工单桌">
   <div class="ad-head">
     <div>
@@ -1087,7 +1149,11 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
   function closeDesk() { desk.classList.remove("on"); scrim.classList.remove("on"); }
   $("#desk-btn").addEventListener("click", openDesk);
   $("#desk-close").addEventListener("click", closeDesk);
-  scrim.addEventListener("click", () => { if (desk.classList.contains("on")) closeDesk(); });
+  scrim.addEventListener("click", () => {
+    if (desk.classList.contains("on")) closeDesk();
+    if (ledger.classList.contains("on")) closeLedger();
+    if (adrawer.classList.contains("on")) closeDrawer();
+  });
   $("#desk-body").addEventListener("click", (e) => {
     const b = e.target.closest("[data-fx]");
     if (b) {
@@ -1198,13 +1264,86 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
     }, reduce ? 400 : 2600);
   });
 
+  /* ---------- 总账 ---------- */
+  const ledger = $("#ledger");
+  const EVENTS = [
+    ["07:20", "tool",  "T-02", "脚本自动复跑：周报 44 期排版并推送", "run"],
+    ["07:48", "scout", "T-09", "扫赛道账号完成 · <b>38 个同类账号</b>入《赛道清单》", "run"],
+    ["08:02", "tally", "T-09", "选题打分完成 · 12 行入表，首推 <b>8.9 分</b>", "run"],
+    ["08:14", "lens",  "T-06", "<b>停线</b>：出图额度用尽，Steward 已整理请示", "run"],
+    ["08:25", "flowsmith", "召唤", "流程方案递审批：长文拆合集（复用 2 步）", "ap"],
+    ["08:36", "herald", "T-05", "欢迎序列第 2 封推送 · 1,240 人", "run"],
+    ["08:54", "tally", "编制", "判断命中 9 / 13 · 两笔到回看日", "judge"],
+    ["09:02", "quill", "T-05", "《周报 v3》初稿 2,400 字 · 递你审（L1 必审）", "ap"],
+    ["09:15", "steward", "T-06", "巡检上报：停线 2 小时 · 加购即可恢复", "sys"],
+    ["09:31", "scout", "T-07", "机酒比价表就绪 · 6 方案递确认", "ap"],
+    ["09:42", "quill", "T-07", "行程草案写到第二节 · 60%", "run"],
+    ["09:47", "me", "召唤", "<b>我</b>派出「秋日海报」任务书 · 等排案", "judge"],
+    ["09:58", "steward", "全司", "第 4 轮巡检完成 · 自处理 15 件 · 上报 3 件", "sys"],
+    ["10:04", "quill", "T-04", "答疑草拟 9 / 12 条 · 3 条涉付费建议你亲自答", "ap"],
+    ["10:12", "scout", "T-09", "《赛道清单》交 Tally 打分", "run"],
+    ["10:31", "tally", "T-03", "增长归因：K 值 1.18 → 分享卡点击率是均值 2 倍", "run"],
+    ["10:44", "me", "编制", "<b>我</b>批召唤：竞品月报 · Scout 全自主开工", "judge"],
+    ["11:24", "quill", "T-09", "首篇脚本 v1 产出 · 递「首篇过目」请示", "ap"]
+  ];
+  const RELS = [
+    ["T-09", "赛道账号清单 · 38 行", "derived", "T-09", "选题打分表 · 12 行", "完成"],
+    ["T-09", "选题打分表 · 12 行", "derived", "T-09", "首篇脚本 v1", "在跑"],
+    ["T-09", "首篇脚本 v1", "binds", "T-09", "配图 · 3 张（同源模板）", "排队"],
+    ["T-09", "选题打分表", "supports", "T-09", "判据 · 30 天 ≥ 500 粉", "锁定"],
+    ["T-07", "机酒比价表 · 6 方案", "derived", "T-07", "行程草案 · 60%", "在跑"],
+    ["T-02", "周报 44 期", "supports", "星球", "续费率 71%", "完成"],
+    ["T-04", "答疑话术 9 条", "binds", "T-05", "周报 FAQ 段落", "草拟"],
+    ["T-06", "模板卡 ×3", "derived", "T-09", "首篇配图（候选源）", "停线"],
+    ["编制", "招匠 · Cutter", "binds", "T-06 → T-09", "配图产能 · ¥0.8/张", "待批"]
+  ];
+  const NUMS = {
+    kv: [
+      ["本周净额", "22374", "green", "¥"], ["占用我", "416", "", "分钟"],
+      ["判断命中", "9/13", "", ""], ["本周成本", "1478", "", "¥"]
+    ],
+    myMin: [["T-05 周报", 95], ["T-09 科普闭环", 88], ["T-07 行程规划", 74], ["T-04 答疑", 60], ["T-06 恢复处理", 12]],
+    agentCost: [["Quill · 写作", 310], ["Lens · 视觉", 820], ["Scout · 调研", 140], ["Tally · 数据", 90], ["Herald · 触达", 60]]
+  };
+  let lens = "events", evFilter = "全部";
+  const LK = { run: ["运行", "run"], ap: ["审批", "ap"], judge: ["判断", "judge"], sys: ["系统", "sys"] };
+  function renderLedger() {
+    const body = $("#ledger-body");
+    $$("#ledger .lg-tabs button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.lens === lens));
+    if (lens === "events") {
+      const types = ["全部", "运行", "审批", "判断", "系统"];
+      const rows = EVENTS.filter((e) => evFilter === "全部" || LK[e[4]][0] === evFilter);
+      body.innerHTML = `<div class="lg-filters">${types.map((t) => `<button class="lg-fchip" data-f="${t}" aria-pressed="${t === evFilter}">${t} <span style="opacity:.6">${t === "全部" ? EVENTS.length : EVENTS.filter((e) => LK[e[4]][0] === t).length}</span></button>`).join("")}</div>` +
+        rows.map((e) => {
+          const a = ROSTER[e[1]];
+          return `<div class="levent"><time>${e[0]}</time><span class="mk${a && a.me ? " mk-me" : ""}">${a ? a.mk : "具"}</span><span class="lt"><span class="plate sm">${e[2]}</span>${e[3]}</span><span class="lk ${LK[e[4]][1]}">${LK[e[4]][0]}</span></div>`;
+        }).join("");
+      $$(".lg-fchip").forEach((c) => c.addEventListener("click", () => { evFilter = c.dataset.f; renderLedger(); }));
+    } else if (lens === "rels") {
+      body.innerHTML = RELS.map((r) => `<div class="lrel"><span class="side"><b>${r[0]}</b>${r[1]}</span><span class="kind ${r[2] === "binds" ? "binds" : ""}">${r[2]}</span><span class="side"><b>${r[3]}</b>${r[4]}</span><span class="st">${r[5]}</span></div>`).join("") +
+        `<p class="ad-note" style="margin-top:14px">derived＝A 产出 B · binds＝B 实时绑定 A · supports＝A 是 B 的依据。binds 一律由人建立，传播必经 diff 预览。</p>`;
+    } else {
+      body.innerHTML = `<dl class="lnum-grid">${NUMS.kv.map(([k, v, c, u]) => `<div><dt>${k}</dt><dd class="${c}">${v}${u ? `<small>${u}</small>` : ""}</dd></div>`).join("")}</dl>
+        <div class="lh">我的分钟去哪了 · 本周 416 分</div>
+        ${NUMS.myMin.map(([k, v]) => { const max = NUMS.myMin[0][1]; const me = k.startsWith("T-05") || k.startsWith("T-09"); return `<div class="lbar${me ? " me" : ""}"><span>${k}</span><span class="track"><i style="width:${Math.round((v / max) * 100)}%"></i></span><span class="val">${v} 分</span></div>`; }).join("")}
+        <div class="lh">匠人成本 · 本周 ¥1,478</div>
+        ${NUMS.agentCost.map(([k, v]) => { const max = NUMS.agentCost[0][1]; return `<div class="lbar"><span>${k}</span><span class="track"><i style="width:${Math.round((v / max) * 100)}%"></i></span><span class="val">¥${v}</span></div>`; }).join("")}
+        <p class="ad-note" style="margin-top:14px">黄色条＝亲自做的部分。每 ¥100 收入花你 ${(416 / 223.74).toFixed(1)} 分钟——把 T-05 的排版交出去是下一条最划算的委托。</p>`;
+    }
+  }
+  $$("#ledger .lg-tabs button").forEach((b) => b.addEventListener("click", () => { lens = b.dataset.lens; renderLedger(); }));
+  function openLedger() { closeDesk(); closeDrawer(); renderLedger(); ledger.classList.add("on"); scrim.classList.add("on"); $("#ledger-close").focus(); }
+  function closeLedger() { ledger.classList.remove("on"); scrim.classList.remove("on"); }
+  $("#ledger-close").addEventListener("click", closeLedger);
+
   /* 键位提示 */
   document.addEventListener("keydown", (e) => {
     if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
     if (e.key === "Escape" && adrawer.classList.contains("on")) { closeDrawer(); return; }
     if (e.key === "Escape" && desk.classList.contains("on")) { closeDesk(); return; }
+    if (e.key === "Escape" && ledger.classList.contains("on")) { closeLedger(); return; }
     if (e.key === "c" || e.key === "C") { desk.classList.contains("on") ? closeDesk() : openDesk(); }
-    if (e.key === "l" || e.key === "L") toast("总账（L）在下一屏。");
+    if (e.key === "l" || e.key === "L") { ledger.classList.contains("on") ? closeLedger() : openLedger(); }
   });
 })();
 </script>
