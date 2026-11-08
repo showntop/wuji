@@ -382,6 +382,46 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
 .toast.on { transform: none; visibility: visible; transition: transform .4s var(--ease), visibility 0s; }
 .toast .lamp { width: 10px; height: 10px; border-radius: 50%; background: var(--go); flex: none; }
 
+/* ---------- 产物查看器 ---------- */
+.aviewer { position: fixed; inset: 0; z-index: 55; background: var(--floor); display: flex; flex-direction: column; }
+.aviewer[hidden] { display: none; }
+.av-head { display: flex; align-items: center; gap: 14px; padding: 10px 28px; border-bottom: 1px solid var(--line-2); background: var(--beam); flex-wrap: wrap; }
+.av-head .kind { display: inline-grid; place-items: center; min-width: 26px; height: 22px; background: var(--steel-2); color: var(--ink); font-family: var(--f-cond); font-weight: 700; font-size: 14px; }
+.av-title { font-family: var(--f-cond); font-weight: 700; font-size: 20px; }
+.av-meta { font-family: var(--f-cond); font-size: 13px; color: var(--ink-3); letter-spacing: .03em; }
+.av-close { margin-left: auto; }
+.av-body { flex: 1; overflow-y: auto; padding: 30px 24px 70px; }
+.av-doc { max-width: 680px; margin: 0 auto; background: var(--floor-2); border: 1px solid var(--line); padding: 38px 44px; }
+.av-doc h2 { margin: 0 0 4px; font-family: var(--f-cond); font-weight: 700; font-size: 26px; line-height: 1.25; }
+.av-doc .by { font-family: var(--f-cond); font-size: 13px; color: var(--ink-25); margin-bottom: 22px; }
+.av-doc p { font-size: 15px; line-height: 1.9; color: var(--ink-2); margin: 0 0 14px; }
+.av-doc p:first-of-type { color: var(--ink); }
+.av-doc .stat { display: flex; gap: 26px; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); font-family: var(--f-cond); font-size: 13.5px; color: var(--ink-25); }
+.av-doc .stat b { color: var(--ink); font-size: 17px; margin-right: 3px; }
+.av-doc .ann { margin-top: 18px; padding-top: 12px; border-top: 1px dashed var(--line-2); display: flex; gap: 8px; }
+.av-tbl { max-width: 820px; margin: 0 auto; }
+.av-tbl-t { font-family: var(--f-cond); font-weight: 700; font-size: 18px; margin: 0 0 4px; }
+.av-tbl-note { font-family: var(--f-cond); font-size: 13px; color: var(--ink-3); margin: 0 0 12px; }
+table.data { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.data th { font-family: var(--f-cond); font-weight: 600; font-size: 13px; letter-spacing: .05em; color: var(--ink-2); text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line-2); cursor: pointer; user-select: none; white-space: nowrap; }
+table.data th:hover { color: var(--ink); }
+table.data th .dir { margin-left: 4px; font-size: 11px; color: var(--call); }
+table.data td { padding: 9px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); }
+table.data tbody tr:hover td { background: rgba(242, 239, 231, .03); }
+table.data td.sc { font-family: var(--f-cond); font-weight: 700; font-size: 16px; }
+table.data tr.top td, table.data tr.top td.sc { color: var(--ink); }
+table.data tr.top td.sc { color: var(--go); }
+.av-gallery { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.shot { position: relative; aspect-ratio: 16 / 10; background: repeating-linear-gradient(-45deg, var(--floor-3) 0 12px, var(--floor-2) 12px 24px); border: 1px solid var(--line-2); display: grid; place-items: center; cursor: zoom-in; transition: border-color .2s, transform .25s var(--ease); }
+.shot:hover { border-color: var(--ink-3); transform: translateY(-2px); }
+.shot .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 7px 10px; background: rgba(13, 13, 12, .82); font-family: var(--f-cond); font-size: 12.5px; letter-spacing: .04em; color: var(--ink-2); }
+.shot .zoom { position: absolute; top: 8px; right: 8px; font-family: var(--f-cond); font-size: 11px; color: var(--ink-3); border: 1px solid var(--line-2); padding: 1px 6px; background: var(--floor-2); }
+.av-notes { max-width: 680px; margin: 0 auto; }
+.av-note { background: var(--floor-2); border: 1px solid var(--line); border-left: 2px solid var(--steel-2); padding: 14px 16px; margin-bottom: 10px; }
+.av-note .q { font-family: var(--f-cond); font-weight: 600; font-size: 14.5px; color: var(--ink); margin: 0 0 6px; }
+.av-note .a { font-size: 13.5px; color: var(--ink-2); line-height: 1.65; margin: 0; }
+.av-note .meta { margin: 8px 0 0; font-family: var(--f-cond); font-size: 12px; color: var(--ink-3); }
+
 /* ---------- 动效 ---------- */
 @keyframes blink { 50% { opacity: .25; } }
 @keyframes breathe { 50% { filter: brightness(.72); } }
@@ -687,6 +727,20 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
   <div class="lg-body" id="ledger-body"></div>
 </aside>
 
+<!-- ================= 产物查看器 ================= -->
+<div class="aviewer" id="aviewer" hidden>
+  <div class="av-head">
+    <span class="plate sm" id="av-task">T-00</span>
+    <span class="kind" id="av-kind">表</span>
+    <div>
+      <div class="av-title" id="av-title">产物</div>
+      <div class="av-meta" id="av-meta"></div>
+    </div>
+    <button class="btn sm av-close" id="av-close">关闭 (Esc)</button>
+  </div>
+  <div class="av-body" id="av-body"></div>
+</div>
+
 <!-- ================= 快速发起 ================= -->
 <div class="summon-zone">
   <form class="summon" id="summon" autocomplete="off">
@@ -891,7 +945,11 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
     $$(".art").forEach((a) => {
       if (a.dataset.bound) return;
       a.dataset.bound = "1";
-      a.addEventListener("click", (e) => { e.stopPropagation(); toast(`打开「${a.dataset.art}」的${a.querySelector(".kind").textContent === "表" ? "表格" : a.querySelector(".kind").textContent === "稿" ? "文稿" : "图片"}查看器（完整版内接形态编辑器）。`); });
+      a.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = a.closest("[data-task]");
+        openArtifact(row ? row.dataset.task : "—", a.dataset.art, a.querySelector(".kind").textContent);
+      });
     });
   }
 
@@ -962,7 +1020,7 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
       n.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
     });
     $$("#wfnodes .wfart").forEach((a) => {
-      a.addEventListener("click", () => toast(`打开「${a.querySelector(".an").textContent}」查看器（完整版内接形态编辑器）。`));
+      a.addEventListener("click", () => openArtifact(curTask.id, a.querySelector(".an").textContent, a.querySelector(".kind").textContent));
     });
   }
   function stepLogs(t, i) {
@@ -1315,10 +1373,122 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
     }, reduce ? 400 : 2600);
   });
 
+  /* ================= 产物查看器 ================= */
+  const ARTIFACTS = {
+    "机酒比价 · 6 方案": { kind: "表", by: "Scout · T-07 · 09:05 产出", note: "按预算 ¥8,000 筛出 6 个方案，涩谷/新宿各 3",
+      cols: ["方案", "酒店", "位置", "每晚", "到地铁站", "综合分"],
+      rows: [["A1", "涩谷樱丘公寓", "涩谷", "¥1,180", "步行 4 分", "9.1"], ["A2", "涩谷东武酒店", "涩谷", "¥1,050", "步行 6 分", "8.7"], ["B1", "新宿格兰贝尔", "新宿", "¥980", "步行 3 分", "8.9"], ["B2", "新宿华盛顿", "新宿", "¥890", "步行 9 分", "8.2"], ["A3", "涩谷 Tokyu REI", "涩谷", "¥1,120", "步行 5 分", "8.5"], ["B3", "新宿 Sakura 走廊", "新宿", "¥940", "步行 7 分", "8.0"]],
+      top: 0 },
+    "机酒比价": { kind: "表", alias: "机酒比价 · 6 方案" },
+    "赛道账号清单 · 38 行": { kind: "表", by: "Scout · T-09 · 10:26 产出", note: "38 个同类账号，按粉丝增速排序取前 6",
+      cols: ["账号", "赛道", "粉丝", "30 天增速", "更新频率", "打法"],
+      rows: [["AI 进化论", "AI 科普", "12.4 万", "+18%", "日更", "热点解读"], ["工具猎人", "AI 工具", "8.1 万", "+12%", "日更", "工具测评"], ["老张聊 AI", "AI 科普", "5.6 万", "+9%", "周 3", "深度长文"], ["赛博手帐", "AI 效率", "4.2 万", "+22%", "周 5", "工作流演示"], ["prompt 日常", "AI 教程", "3.8 万", "+7%", "日更", "教程"], ["机器之心外传", "AI 科普", "2.9 万", "+15%", "周 2", "行业翻译"]],
+      top: 3 },
+    "赛道清单": { kind: "表", alias: "赛道账号清单 · 38 行" },
+    "选题打分表 · 12 行": { kind: "表", by: "Tally · T-09 · 10:44 产出", note: "12 个选题按 热度 × 竞争度 × 契合度 打分，取前 5",
+      cols: ["选题", "热度", "竞争度", "契合度", "综合"],
+      rows: [["会用 AI 的同行，正在悄悄赢", "92", "中", "高", "8.9"], ["给上班族的五个 AI 工作流", "88", "高", "高", "8.1"], ["AI 时代职业变形记（系列）", "76", "中", "高", "7.6"], ["每周 AI 工具榜", "81", "高", "中", "7.2"], ["拆解一篇 10w+ 的 AI 科普文", "64", "低", "中", "6.8"]],
+      top: 0 },
+    "选题打分": { kind: "表", alias: "选题打分表 · 12 行" },
+    "功能对比": { kind: "表", by: "Tally · T-03", note: "Flowith 与三个同类画布型 Agent 产品的功能对照",
+      cols: ["能力", "Flowith", "Canvas Cowork", "Manus", "我们"],
+      rows: [["无限画布", "有", "有", "无", "规划中"], ["多态节点", "无", "无", "无", "有"], ["步骤可改参重跑", "无", "部分", "日志只读", "有"], ["人工审批门", "弱", "无", "有", "强"], ["失败库沉淀", "无", "无", "无", "有"]],
+      top: -1 },
+    "景点分 · 18 选 9": { kind: "表", by: "Tally · T-07 · 09:10 产出", note: "18 个候选景点按 游玩价值 / 顺路度 / 体力成本 打分取前 6",
+      cols: ["景点", "类型", "游玩", "顺路", "体力", "入选"],
+      rows: [["明治神宫", "人文", "8.5", "9.0", "低", "是"], ["涩谷天空", "观景", "8.8", "8.5", "中", "是"], ["TEAMLAB", "展馆", "9.2", "7.0", "中", "是"], ["浅草寺", "人文", "8.0", "6.5", "中", "是"], ["吉祥寺", "街区", "7.8", "5.0", "低", "备选"], ["筑地市场", "美食", "8.2", "7.5", "低", "是"]],
+      top: -1 },
+    "周报 v3": { kind: "稿", title: "无极周报 · 第 44 期（v3 待审）", by: "Quill · T-05 · 09:02 产出 · 2,400 字 · 自评 2 处存疑",
+      paras: ["本周 8 条任务跑了 63 次：3 条新任务入列，T-06 因出图额度停线 2 小时，其余全部按判据推进。净额 ¥22,374，环比 +6%；我的投入 416 分钟，其中 95 分钟花在审稿上——这仍是目前最该交出去的一类工作。", "任务侧最大的变化是 T-09「AI 科普自媒体闭环」：Scout 用 34 分钟扫完 38 个同类账号，Tally 打分选出了首篇方向，「会用 AI 的同行，正在悄悄赢」8.9 分。首篇脚本将在下周二前完成过目。", "（第三节 · 存疑标注）T-03 的归因结论「分享卡点击率是均值 2 倍」样本只有两周，置信度中等，建议再观察一周后再决定是否加码。", "风险与下步：Lens 的出图额度是当前唯一硬瓶颈；若 T-06 与 T-09 配图撞期，建议招一名专职视觉 Agent。"],
+      stats: [["63", "次运行"], ["¥22,374", "本周净额"], ["416", "我的分钟"], ["2", "处存疑"]] },
+    "周报 44 期": { kind: "稿", title: "星球周报 · 44 期（已推送）", by: "Quill + Lens + Herald · T-02 · 07:20 推送",
+      paras: ["本周星球精选 7 条：AI 工作流的三个误区、为什么审批门比自动化更重要、一次停线的完整复盘……", "（节选 · 已推送触达 1,860 人，打开率 41%）"],
+      stats: [["1,860", "触达"], ["41%", "打开率"], ["+3pt", "环比"], ["71%", "续费率"]] },
+    "调研笔记": { kind: "稿", title: "竞品调研：Flowith", by: "Scout + Tally · T-03 · 持续更新",
+      paras: ["Flowith 的核心是画布上的多线程任务：用户撒一把种子，Agent 并行展开。强在并发，弱在三处——步骤不可改参重跑、没有人工审批门、失败不沉淀。", "定价：免费档 20 次日调用；Pro ¥150/月。增长归因显示分享卡点击率是同类均值 2 倍（样本两周，置信度中等）。", "（节选 · 完整版含 32 篇报道索引与功能对照表）"],
+      stats: [["32", "篇报道"], ["4", "功能维度"], ["2 周", "归因样本"]] },
+    "答疑话术": { kind: "记", by: "Quill · T-04 · 09:28 · 12 条中 9 条可直发",
+      items: [
+        ["怎么看待 AI 取代插画师？", "取代的不是职业是工序：概念稿和精修正在分化。建议：讲清分化，不贩卖焦虑。（可直发）", "直发 · 置顶"],
+        ["你们的判据是怎么定的？", "判据在开工前锁定、到期不可改：30 天 ≥ 500 粉。定它的过程比数字本身重要。（可直发）", "直发"],
+        ["付费会员能看失败库吗？", "涉及付费权益边界，建议亲自回复并顺带做一次续费提醒。（需要我）", "我亲自答"]
+      ] },
+    "模板卡 ×3": { kind: "图", by: "Lens · T-06 · 08:05 试排", note: "新版分享卡三套模板：横版金句 / 竖版数据卡 / 方图对比",
+      shots: [["模板 A · 横版金句", "1440 × 810"], ["模板 B · 竖版数据卡", "1080 × 1440"], ["模板 C · 方图对比", "1080 × 1080"]] },
+    "触达图": { kind: "图", by: "Tally · T-02 · 07:20 随周报产出", note: "周报 44 期触达漏斗",
+      shots: [["触达漏斗 · 1,860 → 763 打开", "1600 × 900"], ["分群打开率对比", "1200 × 800"], ["续费率趋势 · 71%", "1200 × 800"]] }
+  };
+  function findArtifact(name) {
+    const direct = ARTIFACTS[name];
+    if (direct && !direct.alias) return direct;
+    if (direct && direct.alias) return Object.assign({}, findArtifact(direct.alias), { title: name });
+    const hit = Object.keys(ARTIFACTS).find((k) => !ARTIFACTS[k].alias && (name.includes(k.slice(0, 4)) || k.includes(name.slice(0, 4))));
+    return hit ? Object.assign({}, ARTIFACTS[hit], { title: name }) : null;
+  }
+  const AV = $("#aviewer");
+  function openArtifact(taskId, name, kindHint) {
+    const a = findArtifact(name);
+    const kind = (a ? a.kind : kindHint) || "稿";
+    $("#av-task").textContent = taskId;
+    $("#av-kind").textContent = kind;
+    $("#av-title").textContent = name;
+    $("#av-meta").textContent = a ? (a.by || "") : taskId + " · 示例占位（完整版由对应步骤实时写入）";
+    const body = $("#av-body");
+    if (kind === "表") {
+      const cols = a && !a.alias ? a.cols : (a ? a.cols : ["项目", "数值", "状态"]);
+      const rows = a && !a.alias ? a.rows : [["示例条目 A", "—", "进行中"], ["示例条目 B", "—", "已完成"]];
+      let sortCol = 0, dir = 1;
+      const render = () => {
+        let sorted = rows.slice();
+        if (sortCol >= 0) {
+          sorted.sort((x, y) => {
+            const nx = parseFloat(String(x[sortCol]).replace(/[^\d.-]/g, "")), ny = parseFloat(String(y[sortCol]).replace(/[^\d.-]/g, ""));
+            const c = Number.isNaN(nx) || Number.isNaN(ny) ? String(x[sortCol]).localeCompare(String(y[sortCol]), "zh") : nx - ny;
+            return c * dir;
+          });
+        }
+        body.innerHTML = '<div class="av-tbl"><p class="av-tbl-t">' + esc(name) + "</p>" +
+          (a && a.note ? '<p class="av-tbl-note">' + esc(a.note) + "</p>" : "") +
+          (a && a.by ? '<p class="av-tbl-note">' + esc(a.by) + "</p>" : "") +
+          '<table class="data"><thead><tr>' + cols.map((c, i) => '<th data-col="' + i + '">' + esc(c) + (sortCol === i ? '<span class="dir">' + (dir > 0 ? "↑" : "↓") + "</span>" : "") + "</th>").join("") + "</tr></thead>" +
+          "<tbody>" + sorted.map((r) => '<tr class="' + (sortCol >= 0 && r === sorted[0] ? "top" : "") + '">' + r.map((cell, i) => "<td>" + esc(cell) + "</td>").join("") + "</tr>").join("") + "</tbody></table>" +
+          '<p class="av-tbl-note" style="margin-top:10px">点表头排序 · 数字列自动按数值比较</p></div>';
+        $$("table.data th", body).forEach((th) => th.addEventListener("click", () => {
+          const c = +th.dataset.col;
+          if (sortCol === c) dir = -dir; else { sortCol = c; dir = 1; }
+          render();
+        }));
+      };
+      render();
+    } else if (kind === "稿") {
+      body.innerHTML = '<article class="av-doc">' +
+        "<h2>" + esc((a && a.title) || name) + "</h2>" +
+        '<div class="by">' + esc((a && a.by) || (taskId + " · 示例占位")) + "</div>" +
+        ((a && a.paras) || ["该产物由对应步骤产出后自动写入此查看器；当前为示例占位。"]).map((p2) => "<p>" + esc(p2) + "</p>").join("") +
+        (a && a.stats ? '<div class="stat">' + a.stats.map((st) => "<span><b>" + st[0] + "</b>" + st[1] + "</span>").join("") + "</div>" : "") +
+        '<div class="ann"><button class="btn sm" data-ann>批注</button><button class="btn sm ghost" data-ann2>生成配图指令</button></div>' +
+        "</article>";
+      const ann = $("[data-ann]", body);
+      if (ann) ann.addEventListener("click", () => toast("批注模式：选中段落即可写批注，Quill 会按批注改稿（完整版）。"));
+      const ann2 = $("[data-ann2]", body);
+      if (ann2) ann2.addEventListener("click", () => toast("已把本文交给 Lens 生成配图指令（完整版）。"));
+    } else if (kind === "图") {
+      const shots = (a && a.shots) || [["示例图 · 占位", "1600 × 900"]];
+      body.innerHTML = '<div class="av-gallery">' + shots.map((sh) => '<div class="shot" data-shot="' + esc(sh[0]) + '"><span class="zoom">' + esc(sh[1]) + "</span><span class=cap>" + esc(sh[0]) + "</span></div>").join("") + "</div>" +
+        (a && a.note ? '<p class="av-tbl-note" style="max-width:900px;margin:14px auto 0">' + esc(a.note) + "</p>" : "");
+      $$(".shot", body).forEach((sh) => sh.addEventListener("click", () => toast("大图预览「" + sh.dataset.shot + "」（完整版接看图器：缩放/标注/下载）。")));
+    } else {
+      const items = (a && a.items) || [["示例条目", "该产物由对应步骤产出后写入。", "—"]];
+      body.innerHTML = '<div class="av-notes">' + items.map((it) => '<div class="av-note"><p class="q">' + esc(it[0]) + '</p><p class="a">' + esc(it[1]) + '</p><p class="meta">' + esc(it[2]) + "</p></div>").join("") + "</div>";
+    }
+    AV.hidden = false;
+  }
+  $("#av-close").addEventListener("click", () => { AV.hidden = true; });
+
   /* ================= 键盘 ================= */
   document.addEventListener("keydown", (e) => {
     if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
-    if (e.key === "Escape") { closeAll(); return; }
+    if (e.key === "Escape") { if (!AV.hidden) { AV.hidden = true; return; } closeAll(); return; }
     if (e.key === "c" || e.key === "C") { $("#desk").classList.contains("on") ? closeAll() : openDesk(); }
     if (e.key === "l" || e.key === "L") { $("#ledger").classList.contains("on") ? closeAll() : (renderLedger(), openDrawer("ledger")); }
     if (e.key === "1") setView("home");
