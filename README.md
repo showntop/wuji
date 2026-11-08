@@ -38,3 +38,5 @@ The seeded field walks one full chain: Intent → Trace → Evidence ×3 → Tab
 - [`PRODUCT.md`](../PRODUCT.md)
 - [`DESIGN.md`](../DESIGN.md)
 - [`BLUEPRINT.md`](../BLUEPRINT.md) — V2 总体方案蓝图（体·相·用架构、卷/野/谱视图、路线图）
+- [`ARCHITECTURE.md`](../ARCHITECTURE.md) — 系统架构：能力与资源 / harness / Agent 编制池 / 工作台，四层三横切面
+- [`INTERFACE.md`](../INTERFACE.md) — 交互形态：一坊一桌一账一栏，壳与台的形制

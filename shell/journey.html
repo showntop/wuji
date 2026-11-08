@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>无极 · 旅程：AI 科普闭环</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230f0f0e'/%3E%3Ccircle cx='8' cy='4' r='2.4' fill='%23ff4a35'/%3E%3Ccircle cx='8' cy='8' r='2.4' fill='%23ffc21a'/%3E%3Ccircle cx='8' cy='12' r='2.4' fill='%233ad16f'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+@font-face {
+  font-family: "DSEG7";
+  src: url("https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  --floor: #161614; --floor-2: #1c1c1a; --floor-3: #232320;
+  --beam: #0f0f0e; --steel: #2c2c29; --steel-2: #3a3a36;
+  --plate: #dcd8cc; --plate-2: #c9c4b5; --plate-ink: #1b1b19;
+  --ink: #efece4; --ink-2: #b9b6ad; --ink-3: #85837b; --ink-25: #9d9a92;
+  --line: rgba(239,236,228,.09); --line-2: rgba(239,236,228,.16);
+  --go: #3ad16f; --go-deep: #1b7a40; --call: #ffc21a; --call-deep: #a87a00;
+  --stop: #ff4a35; --stop-deep: #9c1f12; --hold: #a9c3d6; --done: #8f8c83; --off: #34342f;
+  --f-cond: "Barlow Condensed", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --f-body: "Barlow", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --f-seg: "DSEG7", "Barlow Condensed", monospace;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --gantry-h: 64px;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--floor); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; overflow-x: hidden; }
+::selection { background: var(--call); color: var(--plate-ink); }
+* { scrollbar-width: thin; scrollbar-color: var(--steel-2) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--steel-2); border: 3px solid var(--floor); }
+::-webkit-scrollbar-track { background: transparent; }
+:focus-visible { outline: 2px solid var(--call); outline-offset: 2px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- 横梁（旅程版：紧凑） ---------- */
+.gantry {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 20px;
+  height: var(--gantry-h); padding: 0 24px;
+  background: var(--beam); border-bottom: 1px solid var(--line-2);
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 16px; height: 34px; }
+.brand-name { font-family: var(--f-cond); font-weight: 700; font-size: 21px; letter-spacing: .02em; white-space: nowrap; }
+.brand-sub { font-family: var(--f-cond); font-size: 12.5px; color: var(--ink-3); letter-spacing: .03em; }
+.gtabs { display: flex; background: var(--steel); padding: 2px; margin-left: 8px; }
+.gtabs button { border: 0; background: transparent; padding: 6px 13px; font-family: var(--f-cond); font-weight: 600; font-size: 14px; letter-spacing: .04em; color: var(--ink-2); }
+.gtabs button[aria-pressed="true"] { background: var(--floor-3); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.grow { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.call-btn {
+  display: flex; align-items: center; gap: 9px; background: var(--call); color: #2a1f00; border: 0;
+  padding: 0 13px; height: 36px; font-family: var(--f-cond); font-weight: 700; font-size: 15px; letter-spacing: .04em;
+  box-shadow: 0 3px 10px rgba(0,0,0,.45);
+}
+.call-btn .call-count { font-family: var(--f-seg); font-size: 16px; }
+.call-btn .beacon { width: 9px; height: 9px; border-radius: 50%; background: #2a1f00; animation: beacon 2.6s ease-in-out infinite; }
+@keyframes beacon { 50% { opacity: .4; } }
+
+/* ---------- 幕进条 ---------- */
+.stepper {
+  position: sticky; top: var(--gantry-h); z-index: 29;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 8px 24px; background: var(--floor);
+  border-bottom: 1px solid var(--line);
+}
+.act {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--line-2); background: var(--floor-2);
+  padding: 5px 11px; font-family: var(--f-cond); font-weight: 600; font-size: 13.5px; letter-spacing: .04em; color: var(--ink-2);
+  transition: border-color .2s, color .2s, background .2s;
+}
+.act i { width: 7px; height: 7px; border-radius: 50%; background: var(--off); }
+.act.done { color: var(--ink-2); border-color: var(--line-2); }
+.act.done i { background: var(--done); }
+.act.cur { background: var(--plate); color: var(--plate-ink); border-color: var(--plate); }
+.act.cur i { background: var(--plate-ink); }
+.act:hover:not(.cur) { color: var(--ink); border-color: var(--ink-3); }
+.next-btn { margin-left: auto; }
+
+/* ---------- 通用件 ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--line-2); background: var(--floor-2);
+  padding: 7px 13px; font-family: var(--f-cond); font-weight: 600; font-size: 14.5px; letter-spacing: .03em;
+  transition: background .2s, border-color .2s, transform .2s var(--ease);
+}
+.btn:hover { background: var(--steel); border-color: var(--ink-3); }
+.btn:active { transform: translateY(1px); }
+.btn.go { background: var(--go); color: #08240f; border-color: var(--go); }
+.btn.go:hover { background: #5be38a; }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 5px 10px; font-size: 13px; }
+.plate {
+  position: relative; flex: none; background: linear-gradient(180deg, var(--plate), var(--plate-2));
+  color: var(--plate-ink); font-family: var(--f-cond); font-weight: 700; font-size: 14px; letter-spacing: .04em; line-height: 1;
+  padding: 5px 8px 4px; min-width: 44px; text-align: center;
+  box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 2px 4px rgba(0,0,0,.45);
+}
+.plate::before, .plate::after { content: ""; position: absolute; top: 3px; width: 3px; height: 3px; border-radius: 50%; background: rgba(27,27,25,.45); }
+.plate::before { left: 3px; } .plate::after { right: 3px; }
+.plate.sm { font-size: 11.5px; padding: 2px 5px 1px; min-width: 0; box-shadow: none; background: var(--steel-2); color: var(--ink-2); }
+.plate.sm::before, .plate.sm::after { display: none; }
+.mk { display: inline-grid; place-items: center; flex: none; min-width: 18px; height: 15px; padding: 0 3px; background: var(--steel-2); color: var(--ink); font-family: var(--f-cond); font-weight: 700; font-size: 11px; letter-spacing: .02em; line-height: 1; }
+.mk-me { background: var(--call); color: #2a1f00; }
+.mk-new { background: var(--plate); color: var(--plate-ink); }
+.lamp { width: 11px; height: 11px; border-radius: 50%; background: var(--off); flex: none; box-shadow: inset 0 -2px 3px rgba(0,0,0,.55); }
+.lamp.on-run { background: radial-gradient(circle at 38% 32%, #c7ffd9, var(--go) 55%, var(--go-deep)); box-shadow: 0 2px 10px rgba(58, 209, 111, .7); animation: breathe 1.8s ease-in-out infinite; }
+.lamp.on-call { background: radial-gradient(circle at 38% 32%, #fff2c2, var(--call) 55%, var(--call-deep)); box-shadow: 0 2px 10px rgba(255, 194, 26, .75); animation: blink 1s steps(1) infinite; }
+.lamp.on-stop { background: radial-gradient(circle at 38% 32%, #ffc9c0, var(--stop) 55%, var(--stop-deep)); box-shadow: 0 2px 12px rgba(255, 74, 53, .8); }
+.lamp.on-done { background: var(--done); box-shadow: inset 0 -2px 3px rgba(0,0,0,.4); }
+.tag-s { font-family: var(--f-cond); font-weight: 700; font-size: 13px; letter-spacing: .06em; }
+.t-run { color: var(--go); } .t-call { color: var(--call); } .t-done, .t-idle { color: var(--ink-3); } .t-hold { color: var(--hold); }
+
+/* ---------- 任务台（精简版） ---------- */
+.strip { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 9px 24px; border-bottom: 1px solid var(--line); font-family: var(--f-cond); font-size: 13.5px; letter-spacing: .03em; color: var(--ink-2); }
+.strip b { color: var(--ink); font-weight: 600; }
+.strip .sample { background: var(--steel); color: var(--ink-2); padding: 1px 8px; font-size: 12px; letter-spacing: .1em; }
+.sec-h { display: flex; align-items: baseline; gap: 12px; padding: 20px 24px 8px; }
+.sec-h h2 { margin: 0; font-family: var(--f-cond); font-weight: 700; font-size: 20px; }
+.sec-note { font-family: var(--f-cond); font-size: 13px; color: var(--ink-3); letter-spacing: .04em; }
+.trow {
+  display: grid; grid-template-columns: 58px minmax(200px, 1.1fr) minmax(240px, 1fr) 190px;
+  gap: 0 14px; align-items: center; min-height: 64px; padding: 9px 24px;
+  border-top: 1px dashed var(--line-2); cursor: pointer; transition: background .25s;
+}
+.trow:last-child { border-bottom: 1px dashed var(--line-2); }
+.trow:hover { background: rgba(239, 236, 228, .025); }
+.trow:focus-visible { outline-offset: -2px; }
+.trow[data-s="call"] { background: rgba(255, 194, 26, .035); }
+.trow[data-s="done"] { opacity: .68; }
+.t-id { display: flex; align-items: center; gap: 9px; }
+.t-title { display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--f-cond); font-weight: 600; font-size: 17px; line-height: 1.15; white-space: nowrap; overflow: hidden; }
+.t-crew { display: flex; align-items: center; gap: 3px; margin-top: 5px; }
+.t-crew .lab { font-family: var(--f-cond); font-size: 12px; letter-spacing: .04em; color: var(--ink-3); margin-right: 2px; }
+.t-latest { margin: 4px 0 0; font-size: 12.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-latest b { color: var(--ink-2); font-weight: 500; }
+.t-flow { display: flex; gap: 4px; min-width: 0; }
+.fnode { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 5px; background: var(--floor-3); border-top: 2px solid var(--steel-2); padding: 6px 7px; }
+.fnode[data-s="done"] { border-top-color: var(--done); background: #1f1f1d; }
+.fnode[data-s="run"] { border-top-color: var(--go); background: #1d2620; }
+.fnode[data-s="call"] { border-top-color: var(--call); background: #2a2614; }
+.fnode[data-s="hold"] { border-top-color: var(--hold); background: #1e2328; }
+.fnode .lamp { width: 8px; height: 8px; }
+.fnode[data-s="run"] .lamp { background: var(--go); box-shadow: 0 1px 6px rgba(58, 209, 111, .7); animation: breathe 1.8s ease-in-out infinite; }
+.fnode[data-s="call"] .lamp { background: var(--call); box-shadow: 0 1px 6px rgba(255, 194, 26, .7); animation: blink 1s steps(1) infinite; }
+.fnode[data-s="hold"] .lamp { background: var(--hold); }
+.fnode[data-s="done"] .lamp { background: var(--done); }
+.fnode .fn { min-width: 0; font-size: 11.5px; font-weight: 500; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fnode[data-s="idle"] .fn, .fnode[data-s="done"] .fn { color: var(--ink-25); }
+.t-side { text-align: right; }
+.t-prog { display: flex; justify-content: flex-end; align-items: baseline; gap: 7px; font-family: var(--f-cond); }
+.t-prog .pct { font-weight: 700; font-size: 18px; }
+.t-prog .nm { font-size: 13px; color: var(--ink-3); letter-spacing: .03em; }
+.t-arts { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.art { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line-2); background: var(--floor-2); padding: 2px 7px 2px 2px; font-family: var(--f-cond); font-size: 12px; letter-spacing: .03em; color: var(--ink-2); transition: border-color .2s, color .2s, background .2s; }
+.art:hover { border-color: var(--ink-3); color: var(--ink); background: var(--steel); }
+.art .kind { display: inline-grid; place-items: center; min-width: 17px; height: 15px; background: var(--steel-2); color: var(--ink); font-weight: 700; font-size: 11px; }
+
+/* ---------- flow 画布 ---------- */
+.flowwrap { display: flex; height: calc(100vh - var(--gantry-h) - 47px); min-height: 480px; }
+.canvas { position: relative; flex: 1; overflow: hidden; background: var(--floor); cursor: grab; }
+.canvas.dragging { cursor: grabbing; }
+.canvas::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(239, 236, 228, .07) 1px, transparent 1.5px);
+  background-size: 26px 26px;
+}
+.jboard { position: absolute; top: 0; left: 0; width: 1560px; height: 1120px; transform-origin: 0 0; will-change: transform; }
+.jedges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.jedges line { stroke: var(--line-2); stroke-width: 2; stroke-dasharray: 5 5; }
+.jedges line.pending { visibility: hidden; }
+.jedges line.e-done { stroke: var(--done); stroke-dasharray: none; }
+.jedges line.e-run { stroke: var(--go); stroke-dasharray: none; }
+.jedges line.e-call { stroke: var(--call); stroke-dasharray: 4 4; animation: dashmove 1.2s linear infinite; }
+@keyframes dashmove { to { stroke-dashoffset: -8; } }
+.jnode {
+  position: absolute; width: 200px; height: 60px;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  background: var(--floor-3); border-top: 2px solid var(--steel-2);
+  padding: 6px 10px; cursor: pointer;
+  transition: background .3s, border-color .3s, box-shadow .2s;
+  animation: chalk .5s var(--ease) both; animation-delay: var(--d, 0ms);
+}
+.jnode:hover { box-shadow: 0 0 0 1px var(--ink-3); }
+.jnode.sel { box-shadow: 0 0 0 2px var(--plate); }
+.jnode[data-s="done"] { border-top-color: var(--done); background: #1f1f1d; }
+.jnode[data-s="run"] { border-top-color: var(--go); background: #1d2620; }
+.jnode[data-s="call"] { border-top-color: var(--call); background: #2a2614; }
+.jnode[data-s="hold"] { border-top-color: var(--hold); background: #1e2328; }
+.jnode .lamp { width: 9px; height: 9px; }
+.jnode[data-s="run"] .lamp { background: var(--go); box-shadow: 0 1px 6px rgba(58, 209, 111, .7); animation: breathe 1.8s ease-in-out infinite; }
+.jnode[data-s="call"] .lamp { background: var(--call); box-shadow: 0 1px 6px rgba(255, 194, 26, .7); animation: blink 1s steps(1) infinite; }
+.jnode[data-s="hold"] .lamp { background: var(--hold); }
+.jnode[data-s="done"] .lamp { background: var(--done); }
+.jn-top { display: flex; align-items: center; gap: 7px; }
+.jn-name { flex: 1; min-width: 0; font-family: var(--f-cond); font-weight: 600; font-size: 15.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jn-sub { display: flex; align-items: center; gap: 6px; font-family: var(--f-cond); font-size: 12px; letter-spacing: .03em; color: var(--ink-25); }
+.jn-sub .bar { width: 64px; height: 4px; background: var(--steel); position: relative; overflow: hidden; }
+.jn-sub .bar i { position: absolute; inset: 0 auto 0 0; background: var(--go); }
+.jnode.goal { background: linear-gradient(180deg, var(--plate), var(--plate-2)); border-top: 0; color: var(--plate-ink); height: 54px; }
+.jnode.goal .jn-name { font-size: 17px; font-weight: 700; }
+.jnode.goal .jn-sub { color: rgba(27, 27, 25, .7); }
+.jnode.crit { border: 1px solid var(--line-2); border-top: 2px solid var(--call); background: var(--floor-2); }
+.jart {
+  position: absolute; width: 190px; height: 44px;
+  display: flex; align-items: center; gap: 7px;
+  background: var(--floor-2); border: 1px solid var(--line-2); border-top: 2px solid var(--steel-2);
+  padding: 0 10px; cursor: pointer; transition: border-color .2s, box-shadow .2s;
+  animation: chalk .5s var(--ease) both; animation-delay: var(--d, 0ms);
+}
+.jart:hover { border-color: var(--ink-3); box-shadow: 0 0 0 1px var(--ink-3); }
+.jart .kind { display: inline-grid; place-items: center; min-width: 20px; height: 18px; background: var(--steel-2); color: var(--ink); font-family: var(--f-cond); font-weight: 700; font-size: 12px; }
+.jart .an { flex: 1; min-width: 0; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-2); }
+.jart[data-new] { border-top-color: var(--go); }
+.jgate {
+  position: absolute; width: 190px; height: 60px;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  background: var(--floor-2); border: 1px dashed rgba(255, 194, 26, .55);
+  padding: 6px 10px; cursor: pointer; transition: border-color .3s, box-shadow .2s;
+  animation: chalk .5s var(--ease) both; animation-delay: var(--d, 0ms);
+}
+.jgate:hover { box-shadow: 0 0 0 1px var(--ink-3); }
+.jgate[data-s="done"] { border: 1px solid var(--done); border-top: 2px solid var(--done); }
+.jgate[data-s="call"] { animation: chalk .5s var(--ease) both, gatepulse 2.4s ease-in-out 1s infinite; }
+@keyframes gatepulse { 50% { border-color: rgba(255, 194, 26, 1); } }
+.spark { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--plate); box-shadow: 0 0 10px rgba(220, 216, 204, .9); pointer-events: none; z-index: 5; }
+.cam { position: absolute; right: 14px; bottom: 118px; z-index: 40; display: flex; gap: 6px; align-items: center; background: var(--floor-2); border: 1px solid var(--line-2); padding: 4px; }
+.cam button { border: 0; background: transparent; font-family: var(--f-cond); font-weight: 600; font-size: 14px; color: var(--ink-2); padding: 3px 9px; }
+.cam button:hover { background: var(--steel); color: var(--ink); }
+.cam .zl { font-size: 12px; color: #9d9a92; padding: 0 2px; }
+.cam-hint { position: absolute; left: 14px; bottom: 118px; z-index: 40; font-family: var(--f-cond); font-size: 12.5px; letter-spacing: .05em; color: var(--ink-3); }
+
+/* ---------- 时序日志面板 ---------- */
+.jpanel { width: 342px; flex: none; border-left: 1px solid var(--line-2); background: var(--floor-2); display: flex; flex-direction: column; overflow: hidden; }
+.jp-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+.jp-head h3 { margin: 0; font-family: var(--f-cond); font-weight: 700; font-size: 19px; line-height: 1.1; }
+.jp-sub { margin: 4px 0 0; font-family: var(--f-cond); font-size: 12.5px; letter-spacing: .03em; color: #9d9a92; }
+.jp-body { flex: 1; overflow-y: auto; padding: 12px 16px 20px; }
+.jp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); margin-bottom: 12px; }
+.jp-grid div { background: var(--floor-2); padding: 7px 9px; }
+.jp-grid dt { font-family: var(--f-cond); font-size: 11.5px; color: #9d9a92; letter-spacing: .06em; }
+.jp-grid dd { margin: 2px 0 0; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.jp-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.jp-h { font-family: var(--f-cond); font-weight: 700; font-size: 14px; letter-spacing: .05em; color: var(--ink-2); margin: 14px 0 8px; }
+.jp-h small { font-weight: 500; color: var(--ink-3); margin-left: 6px; font-size: 12px; }
+.logul { list-style: none; margin: 0; padding: 8px 10px; background: #121211; font-family: var(--f-cond); font-size: 13px; color: var(--ink-2); line-height: 1.75; }
+.logul time { color: var(--ink-3); margin-right: 8px; }
+.logul .me { color: #e6c35a; }
+.logul .ap { color: var(--call); }
+.logul .err { color: #ff9a8c; }
+.jp-opt { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border: 1px solid var(--line-2); background: var(--floor-3); margin-bottom: 6px; cursor: pointer; transition: border-color .2s, background .2s; }
+.jp-opt:hover { border-color: var(--ink-3); }
+.jp-opt input { margin-top: 3px; accent-color: var(--call); }
+.jp-opt .ot { font-weight: 600; font-size: 13.5px; }
+.jp-opt .od { display: block; font-size: 12.5px; color: var(--ink-25); margin-top: 1px; }
+.jp-opt:has(input:checked) { border-color: var(--call); background: #2a2614; }
+
+/* ---------- 浮层 ---------- */
+.ovl { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(8, 8, 7, .62); padding: 20px; }
+.ovl[hidden] { display: none; }
+.ovcard { width: min(640px, 100%); max-height: calc(100vh - 60px); overflow-y: auto; background: var(--floor-2); border-top: 2px solid var(--call); padding: 18px 20px 16px; box-shadow: 0 22px 60px rgba(0, 0, 0, .6); animation: rise .35s var(--ease); }
+.ovcard.wide { width: min(760px, 100%); }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+.ov-top { display: flex; align-items: center; gap: 8px; font-family: var(--f-cond); font-size: 13px; letter-spacing: .05em; color: var(--ink-25); }
+.ov-top .summon-tag { display: inline-flex; align-items: center; gap: 6px; color: var(--call); font-weight: 700; font-size: 14px; }
+.ovcard h3 { margin: 8px 0 0; font-family: var(--f-cond); font-weight: 700; font-size: 22px; line-height: 1.15; }
+.ov-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-family: var(--f-cond); font-size: 13.5px; letter-spacing: .03em; color: var(--ink-25); }
+.ov-meta b { color: var(--ink-2); font-weight: 600; }
+.ov-meta b.mine { color: #e6c35a; }
+.plan-list { list-style: none; margin: 14px 0 0; padding: 0; }
+.plan-list li { display: flex; align-items: center; gap: 9px; padding: 8px 4px; border-top: 1px dashed var(--line-2); font-size: 13.5px; color: var(--ink-2); }
+.plan-list li .n { font-family: var(--f-cond); font-weight: 700; color: var(--ink-3); width: 18px; }
+.plan-list li .who { margin-left: auto; display: flex; gap: 3px; }
+.plan-list li.me { color: var(--ink); background: rgba(255, 194, 26, .04); }
+.ov-alt { margin-top: 12px; padding: 10px 12px; border: 1px dashed var(--line-2); }
+.ov-acts { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.script-prev { margin: 14px 0 0; padding: 14px 16px; background: #121211; border: 1px solid var(--line); }
+.script-prev h4 { margin: 0 0 6px; font-family: var(--f-cond); font-weight: 700; font-size: 18px; }
+.script-prev .by { font-family: var(--f-cond); font-size: 12.5px; color: var(--ink-3); margin-bottom: 10px; }
+.script-prev p { margin: 0 0 10px; font-size: 13.5px; color: var(--ink-2); line-height: 1.7; }
+.pull-list { margin-top: 12px; }
+
+/* ---------- 产物查看器 ---------- */
+.viewer { position: fixed; inset: 0; z-index: 55; background: var(--floor); display: flex; flex-direction: column; }
+.viewer[hidden] { display: none; }
+.vw-head { display: flex; align-items: center; gap: 14px; padding: 10px 24px; border-bottom: 1px solid var(--line-2); background: var(--beam); }
+.vw-head h3 { margin: 0; font-family: var(--f-cond); font-weight: 700; font-size: 19px; }
+.vw-tabs { display: flex; background: var(--steel); padding: 2px; }
+.vw-tabs button { border: 0; background: transparent; padding: 6px 13px; font-family: var(--f-cond); font-weight: 600; font-size: 14px; color: var(--ink-2); }
+.vw-tabs button[aria-pressed="true"] { background: var(--floor-3); color: var(--ink); }
+.vw-close { margin-left: auto; }
+.vw-body { flex: 1; overflow-y: auto; padding: 30px 24px 60px; }
+.doc { max-width: 680px; margin: 0 auto; background: var(--floor-2); padding: 36px 42px; border: 1px solid var(--line); }
+.doc h2 { margin: 0 0 4px; font-family: var(--f-cond); font-weight: 700; font-size: 26px; line-height: 1.2; }
+.doc .by { font-family: var(--f-cond); font-size: 13px; color: #9d9a92; margin-bottom: 20px; }
+.doc p { font-size: 15px; line-height: 1.9; color: var(--ink-2); margin: 0 0 14px; }
+.doc p:first-of-type { color: var(--ink); }
+.doc .imgph { height: 180px; margin: 16px 0; background: repeating-linear-gradient(-45deg, var(--floor-3) 0 10px, var(--floor-2) 10px 20px); border: 1px dashed var(--line-2); display: grid; place-items: center; font-family: var(--f-cond); font-size: 13.5px; color: var(--ink-3); letter-spacing: .05em; }
+.doc .stat { display: flex; gap: 24px; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); font-family: var(--f-cond); font-size: 13.5px; color: #9d9a92; }
+.doc .stat b { color: var(--ink); font-size: 17px; margin-right: 3px; }
+.tbl { max-width: 760px; margin: 0 auto; }
+.tbl-t { font-family: var(--f-cond); font-weight: 700; font-size: 18px; margin: 0 0 10px; }
+table.data { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.data th { font-family: var(--f-cond); font-weight: 600; font-size: 13px; letter-spacing: .06em; color: var(--ink-3); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-2); }
+table.data td { padding: 9px 10px; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); }
+table.data tr.top td { color: var(--ink); }
+table.data td.sc { font-family: var(--f-cond); font-weight: 700; font-size: 16px; }
+table.data tr.top td.sc { color: var(--go); }
+
+/* ---------- 召唤栏 ---------- */
+.summon-zone { position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 36px 16px 14px; background: linear-gradient(rgba(22,22,20,0), rgba(22,22,20,.88) 44%, var(--floor) 68%); pointer-events: none; }
+.summon-zone > * { pointer-events: auto; }
+.summon { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; width: min(740px, 100%); background: var(--floor-2); border: 1px solid var(--line-2); box-shadow: 0 12px 34px rgba(0,0,0,.55); transition: border-color .2s, box-shadow .2s; }
+.summon:focus-within { border-color: var(--call); box-shadow: 0 12px 34px rgba(0,0,0,.55), 0 0 0 1px var(--call); }
+.summon.hot { border-color: var(--call); box-shadow: 0 0 0 1px var(--call), 0 0 24px rgba(255, 194, 26, .25); }
+.summon .toggle { display: flex; background: var(--steel); padding: 1px; margin: 8px; }
+.summon .toggle button { border: 0; background: transparent; padding: 5px 13px; font-family: var(--f-cond); font-weight: 600; font-size: 14px; color: var(--ink-2); }
+.summon .toggle button[aria-pressed="true"] { background: var(--floor-3); color: var(--ink); }
+.summon input { border: 0; background: transparent; padding: 13px 8px; font-size: 15px; color: var(--ink); min-width: 0; }
+.summon input:focus { outline: none; }
+.summon input::placeholder { color: var(--ink-25); }
+.summon .kbd { margin-right: 10px; font-family: var(--f-cond); font-weight: 600; font-size: 12.5px; color: var(--ink-25); border: 1px solid var(--line-2); padding: 1px 6px; }
+.summon .send { display: grid; place-items: center; width: 44px; height: 44px; margin: 4px; border: 0; background: var(--plate); color: var(--plate-ink); }
+.summon .send:hover { background: #fff; }
+.think { display: none; align-items: center; gap: 10px; font-family: var(--f-cond); font-size: 13.5px; letter-spacing: .04em; color: var(--ink-2); background: var(--floor-2); border: 1px solid var(--line-2); padding: 8px 14px; }
+.think.on { display: inline-flex; }
+.think .lamp { width: 9px; height: 9px; }
+
+/* toast */
+.toast { position: fixed; left: 24px; bottom: 24px; z-index: 60; display: flex; align-items: center; gap: 10px; background: var(--plate); color: var(--plate-ink); padding: 10px 14px; font-size: 14px; font-weight: 500; max-width: min(560px, calc(100vw - 48px)); box-shadow: 0 10px 30px rgba(0,0,0,.5); transform: translateY(calc(100% + 40px)); visibility: hidden; transition: transform .4s var(--ease), visibility 0s linear .4s; }
+.toast.on { transform: none; visibility: visible; transition: transform .4s var(--ease), visibility 0s; }
+.toast .lamp { width: 10px; height: 10px; border-radius: 50%; background: var(--go); flex: none; }
+
+@keyframes blink { 50% { opacity: .25; } }
+@keyframes breathe { 50% { filter: brightness(.72); } }
+@keyframes chalk { from { opacity: 0; transform: translateY(6px); filter: blur(2px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; } }
+
+@media (max-width: 1100px) {
+  .trow { grid-template-columns: 50px minmax(0, 1fr) 170px; grid-template-areas: "id main side" "flow flow flow"; row-gap: 8px; }
+  .t-id { grid-area: id; } .t-main { grid-area: main; } .t-flow { grid-area: flow; } .t-side { grid-area: side; }
+  .jpanel { width: 300px; }
+}
+@media (max-width: 860px) {
+  .cam { bottom: 14px; }
+  .cam-hint { bottom: 14px; }
+  .gantry { padding: 0 16px; gap: 10px; }
+  .brand-sub { display: none; }
+  .grow .btn { display: none; }
+  .stepper { padding: 8px 16px; }
+  .next-btn { margin-left: 0; }
+  .flowwrap { flex-direction: column; height: auto; }
+  .canvas { height: 62vh; min-height: 380px; }
+  .jpanel { width: auto; border-left: 0; border-top: 1px solid var(--line-2); max-height: 46vh; }
+  .trow { padding: 9px 16px; grid-template-columns: 40px minmax(0,1fr); grid-template-areas: "id main" "side side" "flow flow"; }
+  .t-side { text-align: left; } .t-prog { justify-content: flex-start; } .t-arts { justify-content: flex-start; }
+  .strip { padding: 8px 16px; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-send" viewBox="0 0 16 16"><path d="M2.5 8 13.5 3l-4 11-2-4.5Z"/><path d="m7.5 9.5 6-6.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 16 16"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.8 13.5c.8-2.6 2.9-4 5.2-4s4.4 1.4 5.2 4"/></symbol>
+</svg>
+
+<header class="gantry">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 22 44" aria-hidden="true"><rect x="3" y="1" width="16" height="9" fill="#ff4a35"/><rect x="3" y="11" width="16" height="9" fill="#ffc21a"/><rect x="3" y="21" width="16" height="9" fill="#3ad16f"/><rect x="9" y="31" width="4" height="9" fill="#3a3a36"/><rect x="4" y="40" width="14" height="3" fill="#3a3a36"/></svg>
+    <div>
+      <div class="brand-name">无极</div>
+      <div class="brand-sub">旅程演示 · T-09</div>
+    </div>
+  </div>
+  <div class="gtabs" role="group" aria-label="视图">
+    <button id="tab-home" aria-pressed="true">任务台</button>
+    <button id="tab-flow" aria-pressed="false">T-09 · flow</button>
+  </div>
+  <div class="grow">
+    <button class="btn" id="k-btn"><span class="kbd" style="font-family:var(--f-cond);font-size:12.5px;color:var(--ink-3);border:1px solid var(--line-2);padding:0 5px;margin-right:2px">⌘K</span>召唤</button>
+    <button class="call-btn" id="desk-btn"><i class="beacon"></i><span>待处理</span><span class="call-count" id="call-count">12</span></button>
+  </div>
+</header>
+
+<nav class="stepper" aria-label="旅程幕次">
+  <button class="act cur" data-act="1"><i></i>① 派任务</button>
+  <button class="act" data-act="2"><i></i>② 批方案</button>
+  <button class="act" data-act="3"><i></i>③ 看列表</button>
+  <button class="act" data-act="4"><i></i>④ 进 flow</button>
+  <button class="act" data-act="5"><i></i>⑤ 审产出</button>
+  <button class="act" data-act="6"><i></i>⑥ 拉人</button>
+  <button class="act" data-act="7"><i></i>⑦ 看产物</button>
+  <button class="btn sm next-btn" id="next-btn">下一幕 ▸</button>
+</nav>
+
+<!-- ============ 视图一：任务台 ============ -->
+<main id="home">
+  <div class="strip">
+    <span class="sample">示例数据</span>
+    <span id="strip-info">第 44 周 · 周五 · 演示起点</span>
+    <span id="strip-t09" hidden>任务 <b>7</b> · T-09 在跑</span>
+    <span class="legend" style="display:flex;gap:12px;margin-left:auto;font-family:var(--f-cond)">
+      <span style="display:inline-flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:50%;background:var(--go);display:inline-block"></i>在跑</span>
+      <span style="display:inline-flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:50%;background:var(--call);display:inline-block"></i>等我</span>
+      <span style="display:inline-flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:50%;background:var(--done);display:inline-block"></i>完成</span>
+    </span>
+  </div>
+  <div class="sec-h"><h2>任务车道</h2><span class="sec-note">点 T-09 进它的无限 flow 图</span></div>
+
+  <article class="trow" id="row-t09" data-s="run" hidden tabindex="0" aria-label="T-09 AI 科普自媒体闭环，点入 flow 图">
+    <div class="t-id"><i class="lamp on-run"></i><span class="plate">T-09</span></div>
+    <div class="t-main">
+      <h3 class="t-title" id="t09-title">AI 科普自媒体闭环<span class="tag-s t-run" id="t09-tag">在跑</span></h3>
+      <div class="t-crew" id="t09-crew"><span class="lab">谁在干</span><span class="mk">Sc</span><span class="mk">Ta</span></div>
+      <p class="t-latest" id="t09-latest"><b>10:12</b> Scout 正在扫赛道账号 · 38%</p>
+    </div>
+    <div class="t-flow" id="t09-flow">
+      <div class="fnode" data-s="run"><i class="lamp"></i><span class="fn">扫赛道账号</span></div>
+      <div class="fnode" data-s="idle"><i class="lamp"></i><span class="fn">选题打分</span></div>
+      <div class="fnode" data-s="idle"><i class="lamp"></i><span class="fn">定方向</span></div>
+      <div class="fnode" data-s="idle"><i class="lamp"></i><span class="fn">写首篇</span></div>
+      <div class="fnode" data-s="idle"><i class="lamp"></i><span class="fn">配图分发</span></div>
+    </div>
+    <div class="t-side">
+      <div class="t-prog"><span class="pct" id="t09-pct">0%</span><span class="nm" id="t09-nm">0 / 6 步</span></div>
+      <div class="t-arts" id="t09-arts"></div>
+    </div>
+  </article>
+
+  <article class="trow" data-s="run" tabindex="0">
+    <div class="t-id"><i class="lamp on-run"></i><span class="plate">T-07</span></div>
+    <div class="t-main">
+      <h3 class="t-title">东京五日行程规划<span class="tag-s t-run">在跑</span></h3>
+      <div class="t-crew"><span class="lab">谁在干</span><span class="mk">Sc</span><span class="mk">Qu</span><span class="mk mk-me">我</span></div>
+      <p class="t-latest"><b>09:42</b> Qu 正在写行程草案 · 60%</p>
+    </div>
+    <div class="t-flow">
+      <div class="fnode" data-s="done"><i class="lamp"></i><span class="fn">检索机酒</span></div>
+      <div class="fnode" data-s="done"><i class="lamp"></i><span class="fn">景点打分</span></div>
+      <div class="fnode" data-s="run"><i class="lamp"></i><span class="fn">写草案</span></div>
+      <div class="fnode" data-s="idle"><i class="lamp"></i><span class="fn">排程</span></div>
+      <div class="fnode" data-s="idle"><i class="lamp"></i><span class="fn">出行程表</span></div>
+    </div>
+    <div class="t-side">
+      <div class="t-prog"><span class="pct">40%</span><span class="nm">2 / 5 步</span></div>
+      <div class="t-arts"><button class="art"><span class="kind">表</span>机酒比价</button></div>
+    </div>
+  </article>
+
+  <article class="trow" data-s="call" tabindex="0">
+    <div class="t-id"><i class="lamp on-call"></i><span class="plate">T-05</span></div>
+    <div class="t-main">
+      <h3 class="t-title">周报自动撰写<span class="tag-s t-call">等我</span></h3>
+      <div class="t-crew"><span class="lab">谁在干</span><span class="mk">Qu</span><span class="mk mk-me">我</span></div>
+      <p class="t-latest"><b>09:15</b> 初稿完成，等你审 · 已等 12 分钟</p>
+    </div>
+    <div class="t-flow">
+      <div class="fnode" data-s="done"><i class="lamp"></i><span class="fn">拉数据</span></div>
+      <div class="fnode" data-s="done"><i class="lamp"></i><span class="fn">写初稿</span></div>
+      <div class="fnode" data-s="call"><i class="lamp"></i><span class="fn">你审稿</span></div>
+      <div class="fnode" data-s="idle"><i class="lamp"></i><span class="fn">发布</span></div>
+    </div>
+    <div class="t-side">
+      <div class="t-prog"><span class="pct">83%</span><span class="nm">5 / 6 步</span></div>
+      <div class="t-arts"><button class="art"><span class="kind">稿</span>周报 v3</button></div>
+    </div>
+  </article>
+
+  <article class="trow" data-s="done" tabindex="0">
+    <div class="t-id"><i class="lamp on-done"></i><span class="plate">T-02</span></div>
+    <div class="t-main">
+      <h3 class="t-title">星球周报分发<span class="tag-s t-done">完成</span></h3>
+      <div class="t-crew"><span class="lab">谁在干</span><span style="font-family:var(--f-cond);font-size:12px;color:var(--ink-3)">脚本</span></div>
+      <p class="t-latest"><b>07:20</b> 已推送 · 明日自动复跑</p>
+    </div>
+    <div class="t-flow">
+      <div class="fnode" data-s="done"><i class="lamp"></i><span class="fn">汇稿</span></div>
+      <div class="fnode" data-s="done"><i class="lamp"></i><span class="fn">排版</span></div>
+      <div class="fnode" data-s="done"><i class="lamp"></i><span class="fn">推送</span></div>
+    </div>
+    <div class="t-side">
+      <div class="t-prog"><span class="pct">100%</span><span class="nm">3 / 3 步</span></div>
+      <div class="t-arts"><button class="art"><span class="kind">稿</span>周报 44 期</button></div>
+    </div>
+  </article>
+  <div style="height: 130px"></div>
+</main>
+
+<!-- ============ 视图二：T-09 flow ============ -->
+<section id="flowview" hidden>
+  <div class="flowwrap">
+    <div class="canvas" id="canvas">
+      <div class="jboard" id="jboard">
+        <svg class="jedges" aria-hidden="true">
+          <line id="e-goal-s1" x1="190" y1="84" x2="190" y2="118" />
+          <line id="e-s1-s2" x1="190" y1="178" x2="190" y2="212" />
+          <line id="e-s2-d1" x1="190" y1="272" x2="190" y2="306" />
+          <line id="e-d1-s3" x1="190" y1="366" x2="190" y2="400" />
+          <line id="e-s3-s4" x1="190" y1="460" x2="190" y2="494" />
+          <line id="e-s4-s5" x1="190" y1="554" x2="190" y2="588" />
+          <line id="e-s5-s6" x1="190" y1="648" x2="190" y2="682" />
+          <line id="e-s6-crit" x1="190" y1="742" x2="190" y2="776" />
+          <line id="e-s1-a1" x1="290" y1="148" x2="400" y2="140" />
+          <line id="e-s2-a2" x1="290" y1="268" x2="400" y2="260" />
+          <line id="e-s3-a3" class="pending" x1="290" y1="456" x2="400" y2="448" />
+          <line id="e-a3-ap1" class="pending" x1="590" y1="470" x2="400" y2="520" />
+          <line id="e-ap1-s4" class="pending" x1="400" y1="524" x2="290" y2="520" />
+          <line id="e-s6-a4" class="pending" x1="290" y1="738" x2="400" y2="730" />
+        </svg>
+
+        <div class="jnode goal" id="n-goal" style="left:90px; top:30px; --d:0ms" tabindex="0">
+          <div class="jn-top"><span class="jn-name">AI 科普自媒体闭环</span></div>
+          <div class="jn-sub">书 · 10:04 派出 · 判据已锁</div>
+        </div>
+
+        <div class="jnode" id="n-s1" data-s="idle" style="left:90px; top:118px; --d:60ms" tabindex="0">
+          <div class="jn-top"><i class="lamp"></i><span class="jn-name">扫赛道账号</span><span class="mk">Sc</span></div>
+          <div class="jn-sub"><span class="st tag-s">未开</span><span>38 个同类账号</span></div>
+        </div>
+        <div class="jart" id="a-a1" data-new style="left:400px; top:118px; --d:120ms" hidden tabindex="0" data-art="accounts">
+          <span class="kind">表</span><span class="an">赛道账号清单 · 38 行</span>
+        </div>
+
+        <div class="jnode" id="n-s2" data-s="idle" style="left:90px; top:212px; --d:120ms" tabindex="0">
+          <div class="jn-top"><i class="lamp"></i><span class="jn-name">选题打分</span><span class="mk">Ta</span></div>
+          <div class="jn-sub"><span class="st tag-s">未开</span><span>热度 × 竞争度 × 契合度</span></div>
+        </div>
+        <div class="jart" id="a-a2" data-new style="left:400px; top:212px; --d:180ms" hidden tabindex="0" data-art="scores">
+          <span class="kind">表</span><span class="an">选题打分表 · 12 行</span>
+        </div>
+
+        <div class="jnode" id="n-d1" data-s="idle" style="left:90px; top:306px; --d:180ms" tabindex="0">
+          <div class="jn-top"><i class="lamp"></i><span class="jn-name">定选题方向</span><span class="mk mk-me">我</span></div>
+          <div class="jn-sub"><span class="st tag-s">未开</span><span>三个候选 · 二选一或自定</span></div>
+        </div>
+
+        <div class="jnode" id="n-s3" data-s="idle" style="left:90px; top:400px; --d:240ms" tabindex="0">
+          <div class="jn-top"><i class="lamp"></i><span class="jn-name">写首篇脚本</span><span class="mk">Qu</span></div>
+          <div class="jn-sub"><span class="st tag-s">未开</span><span class="bar"><i style="width:0%"></i></span><span class="pctv">0%</span></div>
+        </div>
+        <div class="jart" id="a-a3" data-new style="left:400px; top:400px; --d:300ms" hidden tabindex="0" data-art="script">
+          <span class="kind">稿</span><span class="an">首篇脚本 v1 · Quill</span>
+        </div>
+
+        <div class="jgate" id="n-ap1" style="left:400px; top:494px; --d:340ms" hidden tabindex="0">
+          <div class="jn-top"><i class="lamp on-call"></i><span class="jn-name">首篇过目</span><span class="mk mk-me">我</span></div>
+          <div class="jn-sub"><span class="st tag-s t-call">请示</span><span>对外文字 · L1 必审</span></div>
+        </div>
+
+        <div class="jnode" id="n-s4" data-s="idle" style="left:90px; top:494px; --d:300ms" tabindex="0">
+          <div class="jn-top"><i class="lamp"></i><span class="mk" id="s4-mk">Le</span><span class="jn-name" id="s4-name">配图 · 封面与插图</span></div>
+          <div class="jn-sub"><span class="st tag-s" id="s4-st">未开</span><span id="s4-note">统一模板 · 3 张</span></div>
+        </div>
+
+        <div class="jnode" id="n-s5" data-s="idle" style="left:90px; top:588px; --d:360ms" tabindex="0">
+          <div class="jn-top"><i class="lamp"></i><span class="jn-name">多平台分发</span><span class="mk">He</span></div>
+          <div class="jn-sub"><span class="st tag-s">未开</span><span>公众号 · 小红书 · B 站</span></div>
+        </div>
+
+        <div class="jnode" id="n-s6" data-s="idle" style="left:90px; top:682px; --d:420ms" tabindex="0">
+          <div class="jn-top"><i class="lamp"></i><span class="jn-name">数据回流 · 周复盘</span><span class="mk">Ta</span></div>
+          <div class="jn-sub"><span class="st tag-s">未开</span><span>每周一 08:00</span></div>
+        </div>
+        <div class="jart" id="a-a4" style="left:400px; top:682px; --d:480ms" hidden tabindex="0" data-art="week1">
+          <span class="kind">表</span><span class="an">首周数据表</span>
+        </div>
+
+        <div class="jnode crit" id="n-crit" style="left:90px; top:776px; --d:480ms" tabindex="0">
+          <div class="jn-top"><svg class="i" style="width:13px;height:13px"><use href="#i-lock"/></svg><span class="jn-name">判据 · 30 天 ≥ 500 粉</span></div>
+          <div class="jn-sub"><span>锁定于 10-04 · 不可改</span></div>
+        </div>
+      </div>
+      <div class="cam-hint">拖拽平移 · 点节点看时序日志</div>
+      <div class="cam">
+        <button id="z-out" aria-label="缩小">−</button><span class="zl" id="z-level">100%</span><button id="z-in" aria-label="放大">＋</button><button id="z-reset">复位</button>
+      </div>
+    </div>
+
+    <aside class="jpanel" aria-label="节点详情与时序日志">
+      <div class="jp-head">
+        <h3 id="jp-title">T-09 · AI 科普自媒体闭环</h3>
+        <p class="jp-sub" id="jp-sub">全局 · 点任一节点看它的运行时序</p>
+      </div>
+      <div class="jp-body" id="jp-body"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ 浮层：方案召唤审批（幕2） ============ -->
+<div class="ovl" id="ov-plan" hidden>
+  <div class="ovcard wide" role="dialog" aria-label="调度方案与召唤审批">
+    <div class="ov-top">
+      <span class="summon-tag"><i class="lamp on-call" style="width:8px;height:8px"></i>召唤审批</span>
+      <span>调度器排案 · 10:05</span>
+      <span style="margin-left:auto;display:flex;gap:3px"><span class="mk">Sc</span><span class="mk">Ta</span><span class="mk">Qu</span><span class="mk">Le</span><span class="mk">He</span><span class="mk mk-me">我</span></span>
+    </div>
+    <h3>AI 科普自媒体闭环 · 调度方案</h3>
+    <div class="ov-meta">
+      <span>步骤 <b>6</b></span>
+      <span>找我 <b class="mine">2 处</b></span>
+      <span>我的 <b class="mine">12 分 / 周</b></span>
+      <span>成本 <b>¥240 / 周</b></span>
+      <span>判据 <b>30 天 ≥ 500 粉 · 单篇 ≥ 5,000 阅读</b>
+    </div>
+    <ul class="plan-list">
+      <li><span class="n">1</span>扫赛道账号，出清单与打法摘要<span class="who"><span class="mk">Sc</span></span></li>
+      <li><span class="n">2</span>选题打分（热度 × 竞争度 × 契合度），出 12 行表<span class="who"><span class="mk">Ta</span></span></li>
+      <li class="me"><span class="n">3</span>定选题方向（三个候选二选一，可自定）<span class="who"><span class="mk mk-me">我</span><span style="font-family:var(--f-cond);font-size:12px;color:var(--call)">请示点</span></span></li>
+      <li><span class="n">4</span>写首篇脚本，产出后你过目再配图<span class="who"><span class="mk">Qu</span></span></li>
+      <li class="me"><span class="n">5</span>首篇过目（对外文字 L1 必审）→ 配图 → 多平台分发<span class="who"><span class="mk">Le</span><span class="mk">He</span><span class="mk mk-me">我</span></span></li>
+      <li><span class="n">6</span>数据回流，每周复盘对判据<span class="who"><span class="mk">Ta</span></span></li>
+    </ul>
+    <div class="ov-alt">
+      <div style="font-family:var(--f-cond);font-weight:700;font-size:13.5px;color:var(--ink-2);letter-spacing:.04em">改案（可选）</div>
+      <label class="jp-opt" style="margin-top:8px"><input type="radio" name="alt" value="a" checked><span><span class="ot">原案：两处找我</span><span class="od">定方向 + 首篇过目 · 预计我的 12 分 / 周</span></span></label>
+      <label class="jp-opt" style="margin:6px 0 0"><input type="radio" name="alt" value="b"><span><span class="ot">精简：只留首篇过目</span><span class="od">选题方向由 Scout 初选、Tally 复核后自动走 · 预计我的 5 分 / 周</span></span></label>
+    </div>
+    <div class="ov-acts">
+      <button class="btn go" id="plan-ok">批准召唤 · 开工</button>
+      <button class="btn" id="plan-edit">按改案重排</button>
+      <button class="btn ghost" id="plan-no">拒绝</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 浮层：产出审批（幕5） ============ -->
+<div class="ovl" id="ov-script" hidden>
+  <div class="ovcard" role="dialog" aria-label="首篇脚本待审">
+    <div class="ov-top">
+      <span class="summon-tag"><i class="lamp on-call" style="width:8px;height:8px"></i>产出待审</span>
+      <span>Quill 提交 · 10:24</span>
+      <span style="margin-left:auto"><span class="mk">Qu</span></span>
+    </div>
+    <h3>首篇脚本 v1 · 待你过目</h3>
+    <div class="ov-meta"><span>对外文字 · <b>L1 必审</b></span><span>约 <b class="mine">6 分</b></span><span>打回重写预计 <b>+40 分</b></span></div>
+    <div class="script-prev">
+      <h4>为什么 AI 不会取代你，但会用 AI 的人会</h4>
+      <div class="by">Quill · v1 · 2,400 字 · 自评：第二节例证偏弱已标注</div>
+      <p>过去两年，每一次模型发布都会重演同一幕：先是惊叹，然后是恐慌，最后是很少有人注意到的第三幕——一批普通人悄悄把新工具变成了自己的手艺……</p>
+      <p>（节选 · 打开产物查看器读全文，可逐段批注）</p>
+    </div>
+    <div class="ov-acts">
+      <button class="btn go" id="script-ok">通过 · 进配图</button>
+      <button class="btn" id="script-view">先读全文</button>
+      <button class="btn ghost" id="script-no">打回重写</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 浮层：拉人（幕6） ============ -->
+<div class="ovl" id="ov-pull" hidden>
+  <div class="ovcard" role="dialog" aria-label="配图步骤拉人">
+    <div class="ov-top">
+      <span class="summon-tag"><svg class="i" style="width:13px;height:13px"><use href="#i-user"/></svg>拉人 · 配图</span>
+      <span>Lens 排队 45 分钟 · T-06 占用中</span>
+    </div>
+    <h3>「配图 · 封面与插图」换谁干？</h3>
+    <div class="pull-list">
+      <label class="jp-opt"><input type="radio" name="pull" value="wait"><span><span class="ot">等 Lens（45 分钟后接手）</span><span class="od">不换人 · 首发推迟约 1 小时</span></span></label>
+      <label class="jp-opt"><input type="radio" name="pull" value="tool"><span><span class="ot">交给出图脚本（外部 API）</span><span class="od">模板化出图 · 快但风格固定 · ¥0.4 / 张</span></span></label>
+      <label class="jp-opt" style="margin-bottom:0"><input type="radio" name="pull" value="hire" checked><span><span class="ot">招一名新匠：Cutter · 视觉剪辑</span><span class="od">专职出图与剪辑 · 自治 L2 抽检 · 约 ¥0.8 / 张 · 入籍后全司可用</span></span></label>
+    </div>
+    <div class="ov-acts">
+      <button class="btn go" id="pull-ok">确认换人</button>
+      <button class="btn ghost" id="pull-no">先不动</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 产物查看器（幕7） ============ -->
+<div class="viewer" id="viewer" hidden>
+  <div class="vw-head">
+    <span class="plate sm">T-09</span>
+    <h3>产物查看器</h3>
+    <div class="vw-tabs" role="group" aria-label="产物形态">
+      <button id="vw-doc" aria-pressed="true">文稿 · 首篇</button>
+      <button id="vw-tbl" aria-pressed="false">表格 · 选题打分</button>
+    </div>
+    <button class="btn sm vw-close" id="vw-close">关闭 (Esc)</button>
+  </div>
+  <div class="vw-body">
+    <article class="doc" id="v-doc">
+      <h2>为什么 AI 不会取代你，但会用 AI 的人会</h2>
+      <div class="by">Quill · v2（已过目）· 2,400 字 · 2026-11-07 发布</div>
+      <p>过去两年，每一次模型发布都会重演同一幕：先是惊叹，然后是恐慌，最后是很少有人注意到的第三幕——一批普通人悄悄把新工具变成了自己的手艺。这篇文章想讲的就是第三幕里的人：他们不是工程师，不写提示词教程，他们只是把 AI 嵌进了自己原本的行当。</p>
+      <div class="imgph">封面图 · Cutter 出品 · 1080 × 608</div>
+      <p>先说结论：取代你的从来不是 AI，是「用 AI 的同行 + 不用 AI 的你」这对组合。赛道调研里 38 个同类账号，涨粉最快的一批有个共同点——他们从不谈模型参数，只演示自己的工作流……</p>
+      <p>（节选 · 全文 2,400 字 · 可逐段批注、改写、生成配图指令）</p>
+      <div class="stat"><span><b>2,300</b>阅读</span><span><b>312</b>在看</span><span><b>47</b>新粉</span><span><b>3</b>平台</span></div>
+    </article>
+    <div class="tbl" id="v-tbl" hidden>
+      <p class="tbl-t">选题打分表 · Tally · 12 行取前 5</p>
+      <table class="data">
+        <thead><tr><th>选题</th><th>热度</th><th>竞争度</th><th>契合度</th><th>综合</th></tr></thead>
+        <tbody>
+          <tr class="top"><td>会用 AI 的同行，正在悄悄赢</td><td>92</td><td>中</td><td>高</td><td class="sc">8.9</td></tr>
+          <tr><td>给上班族的五个 AI 工作流</td><td>88</td><td>高</td><td>高</td><td class="sc">8.1</td></tr>
+          <tr><td>AI 时代职业变形记（系列）</td><td>76</td><td>中</td><td>高</td><td class="sc">7.6</td></tr>
+          <tr><td>每周 AI 工具榜</td><td>81</td><td>高</td><td>中</td><td class="sc">7.2</td></tr>
+          <tr><td>拆解一篇 10w+ 的 AI 科普文</td><td>64</td><td>低</td><td>中</td><td class="sc">6.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 召唤栏 ============ -->
+<div class="summon-zone">
+  <div class="think" id="think"><i class="lamp on-run"></i><span>调度器排案中 —— 拆步骤 · 查失败库 · 配匠人 · 锁判据……</span></div>
+  <form class="summon" id="summon" autocomplete="off">
+    <div class="toggle" role="group" aria-label="入口模式">
+      <button type="button" data-mode="ask" aria-pressed="true">问</button>
+      <button type="button" data-mode="write" aria-pressed="false">书</button>
+    </div>
+    <input id="summon-in" placeholder="问点什么 —— 气泡应答，不落盘；派任务就用「书」" aria-label="召唤栏输入" />
+    <span class="kbd" aria-hidden="true">⌘K</span>
+    <button class="send" type="submit" aria-label="发出"><svg class="i"><use href="#i-send"/></svg></button>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><i class="lamp"></i><span id="toast-text"></span></div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let toastT;
+  const toast = (m) => { $("#toast-text").textContent = m; const t = $("#toast"); t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 4200); };
+
+  /* ---------- 视图切换 ---------- */
+  const home = $("#home"), flowview = $("#flowview");
+  const setView = (v) => {
+    const isFlow = v === "flow";
+    home.hidden = isFlow; flowview.hidden = !isFlow;
+    $("#tab-home").setAttribute("aria-pressed", !isFlow);
+    $("#tab-flow").setAttribute("aria-pressed", isFlow);
+  };
+  $("#tab-home").addEventListener("click", () => setView("home"));
+  $("#tab-flow").addEventListener("click", () => { if (act < 4) toast("T-09 还没开工——先在幕 ② 批了方案。"); else setView("flow"); });
+  $("#desk-btn").addEventListener("click", () => toast("工单桌在完整版里（见 index.html）——本演示聚焦 T-09 旅程。"));
+  $("#k-btn").addEventListener("click", () => $("#summon-in").focus());
+
+  /* ---------- 画布平移缩放 ---------- */
+  const board = $("#jboard"), canvas = $("#canvas");
+  let px = 20, py = 10, pz = 1;
+  const applyCam = () => { board.style.transform = `translate(${px}px, ${py}px) scale(${pz})`; $("#z-level").textContent = Math.round(pz * 100) + "%"; };
+  applyCam();
+  $("#z-in").addEventListener("click", () => { pz = Math.min(1.4, pz + 0.15); applyCam(); });
+  $("#z-out").addEventListener("click", () => { pz = Math.max(0.5, pz - 0.15); applyCam(); });
+  $("#z-reset").addEventListener("click", () => { px = 56; py = 8; pz = .78; applyCam(); });
+  let dragging = false, dx0 = 0, dy0 = 0, bx = 0, by = 0;
+  canvas.addEventListener("pointerdown", (e) => { if (e.target.closest(".jnode, .jart, .jgate, .cam")) return; dragging = true; dx0 = e.clientX; dy0 = e.clientY; bx = px; by = py; canvas.classList.add("dragging"); canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove", (e) => { if (!dragging) return; px = bx + e.clientX - dx0; py = by + e.clientY - dy0; applyCam(); });
+  canvas.addEventListener("pointerup", () => { dragging = false; canvas.classList.remove("dragging"); });
+
+  /* ---------- 节点与产物数据 ---------- */
+  const nodeS = (id, s, sub) => {
+    const n = $("#" + id); if (!n) return;
+    n.dataset.s = s && s !== "idle" ? s : "";
+    const st = n.querySelector(".st"); if (st && sub) { st.textContent = sub.label; st.className = "st tag-s " + (sub.cls || "t-idle"); }
+  };
+  const edgeC = (id, cls) => { const l = $("#" + id); if (l) l.setAttribute("class", cls); };
+  const setPct = (id, p) => { const n = $("#" + id); const b = n && n.querySelector(".bar i"); if (b) b.style.width = p + "%"; const v = n && n.querySelector(".pctv"); if (v) v.textContent = p + "%"; };
+
+  const logs = {
+    global: [
+      ["09:58", "Steward 巡检：T-09 尚未开工，等待召唤批准"],
+      ["10:04", "我", "书 · 派出「AI 科普自媒体闭环」"],
+      ["10:05", "调度器排案完成，递召唤审批（六匠 · 找我 2 处）"],
+    ],
+    s1: [
+      ["10:12", "Scout 扫「AI 科普」「AI 工具」双关键词"],
+      ["10:18", "命中 38 个同类账号，抓最近 20 篇"],
+      ["10:26", "产出《赛道账号清单》，交 Tally 打分"],
+    ],
+    s2: [
+      ["10:31", "Tally 建评分模型：热度 × 竞争度 × 契合度"],
+      ["10:44", "12 个选题入表，首推「会用 AI 的同行」8.9 分"],
+    ],
+    d1: [
+      ["10:52", "请示", "三个候选方向待你定（右侧选择）"],
+    ],
+    s3: [
+      ["11:04", "Quill 起草首篇 · 大纲五节"],
+      ["11:16", "初稿 2,400 字 · 自评第二节例证偏弱，已标注"],
+      ["11:24", "产出《首篇脚本 v1》，递「首篇过目」请示"],
+    ],
+    ap1: [
+      ["11:24", "请示", "对外文字 L1 必审 · 已等 6 分钟"],
+    ],
+    s4: [
+      ["11:31", "Lens 领单 · 排队中（前方 T-06）"],
+      ["11:40", "预计 45 分钟后接手"],
+    ],
+    s5: [["—", "待上游交付：首篇 + 配图"]],
+    s6: [["—", "每周一 08:00 自动运行"]],
+  };
+
+  const panelNode = {
+    s1: { title: "扫赛道账号", who: "Sc · 全自主 L3", st: "完成", sub: "6 道工序 · 14 分钟" },
+    s2: { title: "选题打分", who: "Ta · 抽检 L2", st: "完成", sub: "12 行评分表" },
+    d1: { title: "定选题方向", who: "我 · 判断点", st: "等我", sub: "三选一" },
+    s3: { title: "写首篇脚本", who: "Qu · 产出必审 L1", st: "在跑", sub: "五节大纲" },
+    ap1: { title: "首篇过目", who: "我 · 审批门", st: "请示", sub: "对外文字" },
+    s4: { title: "配图 · 封面与插图", who: "Le · 抽检 L2", st: "排队", sub: "3 张" },
+    s5: { title: "多平台分发", who: "He · 抽检 L2", st: "未开", sub: "三平台" },
+    s6: { title: "数据回流 · 周复盘", who: "Ta · 抽检 L2", st: "未开", sub: "周任务" },
+  };
+
+  const renderPanel = (key) => {
+    const body = $("#jp-body");
+    if (!key || key === "global") {
+      $("#jp-title").textContent = "T-09 · AI 科普自媒体闭环";
+      $("#jp-sub").textContent = "全局 · 点任一节点看它的运行时序";
+      body.innerHTML = `<div class="jp-grid">
+          <div><dt>状态</dt><dd class="t-run">在跑</dd></div><div><dt>进度</dt><dd id="jp-prog">—</dd></div>
+          <div><dt>判据</dt><dd>30 天 ≥ 500 粉</dd></div><div><dt>预算</dt><dd>¥240 / 周</dd></div>
+        </div>
+        <div class="jp-h">运行时序日志 <small>全任务</small></div>
+        <ul class="logul">${logs.global.map((l) => `<li><time>${l[0]}</time>${l[1] === "我" ? '<span class="me">我</span> ' : ""}${l[1] === "请示" ? '<span class="ap">请示</span> ' : ""}${l[1] === "调度器排案完成，递召唤审批（六匠 · 找我 2 处）" ? l[1] : (l.length > 2 ? l[2] : l[1])}</li>`).join("")}</ul>`;
+      return;
+    }
+    const p = panelNode[key];
+    $("#jp-title").textContent = p.title;
+    $("#jp-sub").textContent = `${p.who} · ${p.sub}`;
+    const logHtml = (logs[key] || []).map((l) => {
+      const cls = l[1] === "我" ? "me" : l[1] === "请示" ? "ap" : "";
+      return `<li><time>${l[0]}</time>${cls ? `<span class="${cls}">${l[1]}</span> ` : ""}${l.at(-1)}</li>`;
+    }).join("");
+    const acts = {
+      d1: "",
+      ap1: `<button class="btn sm go" data-p="open-script">审批首篇</button>`,
+      s4: `<button class="btn sm go" data-p="pull">拉人 / 换人</button><button class="btn sm">改参（张数）</button>`,
+    }[key] || `<button class="btn sm">暂停</button><button class="btn sm">从这步重跑</button><button class="btn sm">改参</button>`;
+    body.innerHTML = `<div class="jp-grid">
+        <div><dt>谁在干</dt><dd>${p.who}</dd></div><div><dt>状态</dt><dd>${p.st}</dd></div>
+        <div><dt>环节</dt><dd>生产</dd></div><div><dt>重跑</dt><dd>可 · 上游冻结</dd></div>
+      </div>
+      <div class="jp-acts">${acts}</div>
+      ${key === "d1" && act === 4 ? `
+      <div class="jp-h">定方向 <small>只有你能定</small></div>
+      <label class="jp-opt"><input type="radio" name="dir" value="a" checked><span><span class="ot">A · 「会用 AI 的同行，正在悄悄赢」</span><span class="od">打分 8.9 · 对标账号 3 个已验证 · Quill 有现成素材</span></span></label>
+      <label class="jp-opt"><input type="radio" name="dir" value="b"><span><span class="ot">B · 给上班族的五个 AI 工作流</span><span class="od">打分 8.1 · 流量大但竞争度高 · 适合第 2 篇</span></span></label>
+      <label class="jp-opt"><input type="radio" name="dir" value="c"><span><span class="ot">C · 我自己写一个</span><span class="od">自由输入 · Scout 补调研</span></span></label>
+      <div class="jp-acts"><button class="btn sm go" id="dir-ok">就定 A · 开写</button></div>` : ""}
+      <div class="jp-h">运行时序日志 <small>本步骤</small></div>
+      <ul class="logul">${logHtml || "<li><time>—</time>尚未开始</li>"}</ul>`;
+    const dirBtn = body.querySelector("#dir-ok");
+    if (dirBtn) dirBtn.addEventListener("click", () => { decideDirection(body.querySelector('input[name="dir"]:checked').value); });
+    const openSc = body.querySelector('[data-p="open-script"]');
+    if (openSc) openSc.addEventListener("click", () => openOverlay("#ov-script"));
+    const pull = body.querySelector('[data-p="pull"]');
+    if (pull) pull.addEventListener("click", () => openOverlay("#ov-pull"));
+  };
+
+  $$(".jnode, .jart, .jgate").forEach((n) => {
+    const open = () => {
+      $$(".jnode, .jart, .jgate").forEach((x) => x.classList.remove("sel"));
+      n.classList.add("sel");
+      const id = n.id || "";
+      const key = id.startsWith("n-") ? id.slice(2) : "global";
+      if (n.classList.contains("jart")) { renderPanel("global"); if (act >= 5) openViewer(n.dataset.art === "script" ? "doc" : "tbl"); else toast("产物尚未产出——先走完流程。"); return; }
+      renderPanel(key);
+    };
+    n.addEventListener("click", open);
+    n.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+  });
+
+  /* ---------- 物化轨迹光点 ---------- */
+  const spark = (x1, y1, x2, y2, cb) => {
+    if (reduce) { if (cb) cb(); return; }
+    const s = document.createElement("i");
+    s.className = "spark"; board.appendChild(s);
+    const a = s.animate(
+      [{ left: x1 + "px", top: y1 + "px", opacity: 1 }, { left: x2 + "px", top: y2 + "px", opacity: 1, offset: .8 }, { left: x2 + "px", top: y2 + "px", opacity: 0 }],
+      { duration: 900, easing: "cubic-bezier(.16,1,.3,1)" }
+    );
+    a.onfinish = () => { s.remove(); if (cb) cb(); };
+  };
+
+  /* ---------- 浮层 ---------- */
+  const openOverlay = (sel) => { $(sel).hidden = false; };
+  const closeOverlay = (sel) => { $(sel).hidden = true; };
+
+  /* ---------- 幕状态机 ---------- */
+  let act = 1;
+  const ACTS = 7;
+  const actBtns = $$(".act");
+
+  const resetAll = () => {
+    closeOverlay("#ov-plan"); closeOverlay("#ov-script"); closeOverlay("#ov-pull"); $("#viewer").hidden = true;
+    $("#row-t09").hidden = true; $("#strip-t09").hidden = true;
+    ["s1", "s2", "d1", "s3", "s4", "s5", "s6"].forEach((k) => nodeS("n-" + k, "idle", { label: "未开" }));
+    ["a1", "a2", "a3"].forEach((k) => $("#a-" + k).hidden = true);
+    $("#a-a4").hidden = true; $("#n-ap1").hidden = true;
+    $("#n-ap1").dataset.s = ""; $("#n-ap1").classList.remove("done");
+    edgeC("e-goal-s1", ""); edgeC("e-s1-s2", ""); edgeC("e-s2-d1", ""); edgeC("e-d1-s3", "");
+    edgeC("e-s3-a3", ""); edgeC("e-a3-ap1", ""); edgeC("e-ap1-s4", ""); edgeC("e-s4-s5", "");
+    edgeC("e-s5-s6", ""); edgeC("e-s6-crit", ""); edgeC("e-s1-a1", ""); edgeC("e-s2-a2", "");
+    edgeC("e-s3-a3", "pending"); edgeC("e-a3-ap1", "pending"); edgeC("e-ap1-s4", "pending"); edgeC("e-s6-a4", "pending");
+    setPct("n-s3", 0);
+    $("#s4-mk").textContent = "Le"; $("#s4-mk").className = "mk"; $("#s4-name").textContent = "配图 · 封面与插图";
+    $("#s4-note").textContent = "统一模板 · 3 张"; $("#s4-mk").id = "s4-mk";
+    $("#summon").classList.remove("hot"); $("#think").classList.remove("on");
+    setView("home"); renderPanel("global");
+  };
+
+  const applyAct = (n) => {
+    act = n; resetAll();
+    actBtns.forEach((b, i) => { b.classList.toggle("cur", i + 1 === n); b.classList.toggle("done", i + 1 < n); });
+    $("#next-btn").textContent = n >= ACTS ? "旅程走通 ↺" : "下一幕 ▸";
+
+    if (n === 1) {
+      const inp = $("#summon-in");
+      $$("[data-mode]").forEach((x) => x.setAttribute("aria-pressed", x.dataset.mode === "write"));
+      inp.value = "做 AI 科普赛道的自媒体闭环：选题 → 内容 → 分发 → 数据 → 变现";
+      $("#summon").classList.add("hot");
+      toast("幕 ①：任务书已拟好——点发送，交给调度器排案。");
+    }
+    if (n >= 2) { openOverlay("#ov-plan"); }
+    if (n >= 3) {
+      closeOverlay("#ov-plan");
+      $("#row-t09").hidden = false; $("#strip-t09").hidden = false;
+      nodeS("n-s1", "run", { label: "在跑", cls: "t-run" }); edgeC("e-goal-s1", "e-run");
+    }
+    if (n >= 4) {
+      setView("flow"); px = 56; py = 8; pz = .78; applyCam();
+      nodeS("n-s1", "done", { label: "完成", cls: "t-done" }); edgeC("e-goal-s1", "e-done"); edgeC("e-s1-s2", "e-done");
+      $("#a-a1").hidden = false; edgeC("e-s1-a1", "e-done");
+      nodeS("n-s2", "done", { label: "完成", cls: "t-done" }); edgeC("e-s2-d1", "e-done");
+      $("#a-a2").hidden = false; edgeC("e-s2-a2", "e-done");
+      nodeS("n-d1", "call", { label: "等我", cls: "t-call" }); edgeC("e-d1-s3", "e-call");
+      renderPanel("d1");
+      if (n === 4) toast("幕 ④：flow 图里「定选题方向」在等你——右侧面板三选一。");
+    }
+    if (n >= 5) {
+      decideDirection("a", true);
+    }
+    if (n >= 6) {
+      nodeS("n-s4", "hold", { label: "排队", cls: "t-hold" });
+      $("#s4-note").textContent = "Lens 排队 45 分 · 前方 T-06";
+      renderPanel("s4");
+      if (n === 6) toast("幕 ⑥：配图排队拥挤——右侧面板「拉人 / 换人」。");
+    }
+    if (n >= 7) {
+      $("#s4-mk").textContent = "Cu"; $("#s4-mk").classList.add("mk-new");
+      $("#s4-name").textContent = "配图 · Cutter 接手";
+      $("#s4-note").textContent = "新匠入列 · 出图中";
+      nodeS("n-s4", "done", { label: "完成", cls: "t-done" });
+      nodeS("n-s5", "done", { label: "完成", cls: "t-done" }); edgeC("e-s4-s5", "e-done");
+      edgeC("e-s5-s6", "e-run");
+      openViewer("doc");
+    }
+    updateT09();
+  };
+
+  const updateT09 = () => {
+    const row = $("#row-t09");
+    if (row.hidden) return;
+    const steps = { 3: ["17%", "1 / 6", "run", "Scout 扫赛道账号 · 38%"], 4: ["33%", "2 / 6", "call", "定选题方向 · 等你"], 5: ["50%", "3 / 6", "call", "首篇脚本待你过目"], 6: ["67%", "4 / 6", "hold", "配图排队 · Lens 忙"], 7: ["83%", "5 / 6", "run", "首篇已发布 · 阅读 2,300"] }[act];
+    if (!steps) return;
+    $("#t09-pct").textContent = steps[0]; $("#t09-nm").textContent = steps[1];
+    row.dataset.s = steps[2] === "call" ? "call" : "run";
+    $("#t09-tag").textContent = steps[2] === "call" ? "等我" : steps[2] === "hold" ? "排队" : "在跑";
+    $("#t09-tag").className = "tag-s " + (steps[2] === "call" ? "t-call" : "t-run");
+    $("#t09-latest").innerHTML = `<b>11:${(50 + act).toString().padStart(2, "0")}</b> ${steps[3]}`;
+    const flowStates = { 3: ["run", "idle", "idle", "idle", "idle"], 4: ["done", "done", "call", "idle", "idle"], 5: ["done", "done", "done", "done", "idle"], 6: ["done", "done", "done", "done", "hold"], 7: ["done", "done", "done", "done", "run"] }[act];
+    if (flowStates) $$("#t09-flow .fnode").forEach((f, i) => { const s = flowStates[i] || "idle"; f.dataset.s = s; f.querySelector(".lamp").className = "lamp" + (s === "idle" || s === "done" ? "" : " on-" + s); });
+    $("#t09-crew").innerHTML = `<span class="lab">谁在干</span>` + (act >= 7 ? `<span class="mk">Sc</span><span class="mk">Ta</span><span class="mk">Qu</span><span class="mk mk-new">Cu</span><span class="mk">He</span>` : act >= 4 ? `<span class="mk">Sc</span><span class="mk">Ta</span><span class="mk">Qu</span><span class="mk mk-me">我</span>` : `<span class="mk">Sc</span><span class="mk">Ta</span>`);
+    $("#t09-arts").innerHTML = act >= 5 ? `<button class="art" id="art-script"><span class="kind">稿</span>首篇脚本</button>` + (act >= 7 ? `<button class="art" id="art-post"><span class="kind">稿</span>已发布</button><button class="art" id="art-scores"><span class="kind">表</span>选题打分</button>` : "") : "";
+    const as = $("#art-script"); if (as) as.addEventListener("click", (e) => { e.stopPropagation(); openViewer("doc"); });
+    const ap2 = $("#art-post"); if (ap2) ap2.addEventListener("click", (e) => { e.stopPropagation(); openViewer("doc"); });
+    const asc = $("#art-scores"); if (asc) asc.addEventListener("click", (e) => { e.stopPropagation(); openViewer("tbl"); });
+  };
+
+  /* 幕④交互：定方向 */
+  const decideDirection = (v, silent) => {
+    nodeS("n-d1", "done", { label: "已定", cls: "t-done" }); edgeC("e-d1-s3", "e-done");
+    nodeS("n-s3", "run", { label: "在跑", cls: "t-run" }); setPct("n-s3", 100);
+    spark(190, 366, 190, 400, () => {
+      nodeS("n-s3", "done", { label: "完成", cls: "t-done" }); edgeC("e-s3-a3", "e-done");
+      $("#a-a3").hidden = false;
+      spark(290, 430, 400, 422, () => {
+        $("#n-ap1").hidden = false; $("#n-ap1").dataset.s = "call";
+        edgeC("e-a3-ap1", "e-call"); edgeC("e-ap1-s4", "e-call");
+        renderPanel("ap1");
+        if (!silent) { toast("方向已定 · 首篇脚本已产出——「首篇过目」在等你（幕 ⑤）。"); applyActNav(5, true); }
+      });
+    });
+    if (silent) { renderPanel("ap1"); }
+  };
+  const applyActNav = (n, keepFlow) => { act = n; actBtns.forEach((b, i) => { b.classList.toggle("cur", i + 1 === n); b.classList.toggle("done", i + 1 < n); }); };
+
+  /* 召唤栏 */
+  const summon = $("#summon"), input = $("#summon-in");
+  $$("[data-mode]").forEach((b) => b.addEventListener("click", () => {
+    $$("[data-mode]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    const w = b.dataset.mode === "write";
+    input.placeholder = w ? "要什么结果？例：做 AI 科普自媒体闭环" : "问点什么 —— 气泡应答，不落盘";
+  }));
+  summon.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (act !== 1) { toast("旅程进行中——用顶部幕进条或「下一幕」切换。"); return; }
+    $("#think").classList.add("on");
+    setTimeout(() => { $("#think").classList.remove("on"); applyAct(2); }, reduce ? 200 : 1400);
+  });
+
+  /* 方案审批 */
+  $("#plan-ok").addEventListener("click", () => { applyAct(3); toast("已批准召唤——T-09 入列开工。Scout 先扫赛道。"); });
+  $("#plan-edit").addEventListener("click", () => {
+    const v = $('input[name="alt"]:checked').value;
+    toast(v === "b" ? "按精简案重排：只留首篇过目，我的 5 分 / 周——演示走原案，点「批准召唤」继续。" : "原案即当前方案——点「批准召唤」开工。");
+  });
+  $("#plan-no").addEventListener("click", () => toast("已拒绝。演示里任务书退回召唤栏——点「下一幕」继续走原旅程。"));
+
+  /* T-09 行点击 */
+  $("#row-t09").addEventListener("click", () => { if (act >= 4) setView("flow"); else toast("先走完幕 ②③——T-09 开工后才能进 flow。"); });
+  $("#row-t09").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#row-t09").click(); } });
+
+  /* 产出审批 */
+  $("#script-ok").addEventListener("click", () => {
+    closeOverlay("#ov-script");
+    $("#n-ap1").dataset.s = ""; $("#n-ap1").classList.add("done"); $("#n-ap1").querySelector(".jn-sub .st").textContent = "已过";
+    edgeC("e-a3-ap1", "e-done"); edgeC("e-ap1-s4", "e-done");
+    nodeS("n-s4", "hold", { label: "排队", cls: "t-hold" }); $("#s4-note").textContent = "Lens 排队 45 分 · 前方 T-06";
+    renderPanel("s4");
+    toast("首篇通过——Lens 配图排队拥挤，去拉人（幕 ⑥）。");
+    applyActNav(6, true);
+  });
+  $("#script-view").addEventListener("click", () => openViewer("doc"));
+  $("#script-no").addEventListener("click", () => { closeOverlay("#ov-script"); toast("已打回：Quill 重写第二节例证（演示不阻塞，继续幕 ⑥）。"); applyActNav(6, true); });
+
+  /* 拉人 */
+  $("#pull-ok").addEventListener("click", () => {
+    const v = $('input[name="pull"]:checked').value;
+    closeOverlay("#ov-pull");
+    if (v === "wait") { toast("选择等待 Lens——演示走招匠线，继续点「下一幕」。"); return; }
+    if (v === "tool") { $("#s4-mk").textContent = "具"; $("#s4-name").textContent = "配图 · 出图脚本"; $("#s4-note").textContent = "API 模板出图 · 风格固定"; }
+    else { $("#s4-mk").textContent = "Cu"; $("#s4-mk").classList.add("mk-new"); $("#s4-name").textContent = "配图 · Cutter 接手"; $("#s4-note").textContent = "新匠入列 · 出图中"; }
+    nodeS("n-s4", "run", { label: "在跑", cls: "t-run" });
+    spark(400, 524, 290, 520, () => {
+      nodeS("n-s4", "done", { label: "完成", cls: "t-done" }); edgeC("e-s4-s5", "e-done");
+      nodeS("n-s5", "run", { label: "在跑", cls: "t-run" });
+      spark(190, 648, 190, 682, () => {
+        nodeS("n-s5", "done", { label: "完成", cls: "t-done" }); edgeC("e-s5-s6", "e-run");
+        $("#a-a4").hidden = false; edgeC("e-s6-a4", "e-run");
+        toast("配图完成 · 三平台已分发——去看产物（幕 ⑦）。");
+        applyActNav(7, true); updateT09Final();
+      });
+    });
+    if (v === "hire") toast("Cutter 入籍（自治 L2 · ¥0.8/张）——接手配图。");
+  });
+  $("#pull-no").addEventListener("click", () => closeOverlay("#ov-pull"));
+  const updateT09Final = () => { applyActState7Row(); };
+  const applyActState7Row = () => {
+    act = 7; updateT09(); actBtns.forEach((b, i) => { b.classList.toggle("cur", i + 1 === 7); b.classList.toggle("done", i + 1 < 7); });
+  };
+
+  /* 产物查看器 */
+  const openViewer = (tab) => {
+    $("#viewer").hidden = false;
+    const d = tab === "doc";
+    $("#v-doc").hidden = !d; $("#v-tbl").hidden = d;
+    $("#vw-doc").setAttribute("aria-pressed", d); $("#vw-tbl").setAttribute("aria-pressed", !d);
+  };
+  $("#vw-doc").addEventListener("click", () => openViewer("doc"));
+  $("#vw-tbl").addEventListener("click", () => openViewer("tbl"));
+  $("#vw-close").addEventListener("click", () => { $("#viewer").hidden = true; if (act === 7) { setView("home"); toast("旅程走通：派 → 批 → 跑 → 操盘 → 拉人 → 收产物。下一步是接真调度器与真模型。"); } });
+  $$(".jart").forEach((a) => a.addEventListener("click", () => { if (!a.hidden) openViewer(a.dataset.art === "script" || a.dataset.art === "accounts" ? (a.dataset.art === "script" ? "doc" : "tbl") : "tbl"); }));
+
+  /* 幕进条 */
+  actBtns.forEach((b) => b.addEventListener("click", () => applyAct(+b.dataset.act)));
+  $("#next-btn").addEventListener("click", () => {
+    if (act >= ACTS) { applyAct(1); return; }
+    if (act === 1) { applyAct(2); return; }
+    applyAct(Math.min(ACTS, act + 1));
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
+    if (e.key === "Escape") {
+      if (!$("#viewer").hidden) { $("#viewer").hidden = true; return; }
+      ["#ov-plan", "#ov-script", "#ov-pull"].forEach((s) => closeOverlay(s));
+    }
+  });
+
+  applyAct(1);
+})();
+</script>
+</body>
+</html>

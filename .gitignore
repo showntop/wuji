@@ -1,3 +1,4 @@
 # 本地工具状态，不入库
 .impeccable/
 .workbuddy/
+.playwright-mcp/
