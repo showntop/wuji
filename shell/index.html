@@ -594,7 +594,7 @@ table.data tr.top td.sc { color: var(--go); }
   <span class="sample">示例数据</span>
   <span>第 44 周 · 10/26 – 11/01 · 周五</span>
   <span id="strip-sum">任务 <b>8</b> · <b>4</b> 进行中</span>
-  <span class="alert">等你审批 ×2</span>
+  <span class="alert" id="strip-att"></span>
   <span class="alert stop">阻塞 T-06</span>
   <span class="legend" aria-label="状态色">
     <span><i style="background:var(--go)"></i>进行中</span>
@@ -788,7 +788,7 @@ table.data tr.top td.sc { color: var(--go); }
           { l: "A · 「会用 AI 的同行，正在悄悄赢」", d: "打分 8.9 · 对标账号 3 个已验证 · Quill 素材现成", done: "done", note: "方向 A · 打分 8.9" },
           { l: "B · 给上班族的五个 AI 工作流", d: "打分 8.1 · 流量大竞争高 · 适合第 2 篇", done: "done", note: "方向 B · 打分 8.1" },
           { l: "C · 我自己写一个", d: "自由定题 · Scout 补 30 分钟调研再开工", done: "done", note: "方向 C · 自定", insert: { n: "补充调研", agent: "scout", note: "为方向 C 补样本" } }
-        ] }], ["写首篇脚本", "quill", "idle", "", null, null, null, [2], { type: "approval", title: "首篇过目 · 对外文字 L1 必审", pass: "通过 · 交配图", backNote: "打回重写（标注问题后 Quill 重写）" }],
+        ] }], ["写首篇脚本", "quill", "idle", "", null, null, null, [2], { type: "approval", title: "首篇过目 · 对外文字 L1 必审", pass: "通过 · 交配图", backNote: "打回重写（标注问题后 Quill 重写）", selfBack: 1 }],
         ["配图与封面", "lens", "idle", "", null, null, null, [2]], ["多平台分发", "herald", "idle", "", null, null, null, [3, 4]]
       ],
       logs: [["10:12", "Scout 扫「AI 科普」双关键词"], ["10:18", "命中 38 个同类账号"], ["10:26", "《赛道账号清单》产出"], ["10:44", "Tally 打分完成 · 首推 8.9 分"], ["11:54", "请示", "三个候选方向待你定"]], flow: true },
@@ -1009,14 +1009,14 @@ table.data tr.top td.sc { color: var(--go); }
     steps.forEach((_, i) => lay(i));
     const layers = [];
     steps.forEach((_, i) => { (layers[layerMemo[i]] ||= []).push(i); });
-    const COL_W = 268, NODE_W = 224, NODE_H = 64, GAP = 28, C0 = 70, CY = 240;
+    const COL_W = 268, NODE_W = 224, NODE_H = 64, LANE_P = 156, C0 = 70, CY = 240;
     const pos = {};
     layers.forEach((col) => {
       col.forEach((i, k) => {
-        pos[i] = { x: C0 + layerMemo[i] * COL_W, y: CY + (k - (col.length - 1) / 2) * (NODE_H + GAP) };
+        pos[i] = { x: C0 + layerMemo[i] * COL_W, y: CY + (k - (col.length - 1) / 2) * LANE_P };
       });
     });
-    const maxH = Math.max(CY * 2 + Math.max(...layers.map((c) => c.length)) * (NODE_H + GAP) + 160, 560);
+    const maxH = Math.max(CY * 2 + Math.max(...layers.map((c) => c.length)) * LANE_P + 160, 560);
     $("#wfboard").style.height = maxH + "px";
     $("#wfboard").style.width = (C0 + layers.length * COL_W + 60) + "px";
     let html = "", ehtml = "";
@@ -1090,6 +1090,9 @@ table.data tr.top td.sc { color: var(--go); }
       if (kind === "pass") {
         s[2] = "done"; if (g.pass) s[3] = g.pass.split(" · ")[0] + " · 已过审";
         toast(`${t.id}「${s[0]}」已过审——下游接续。`);
+      } else if (g.selfBack) {
+        s[2] = "run"; s[3] = g.backNote;
+        toast(`已打回：「${s[0]}」按你的意见重做，完成后再次递你过目。`);
       } else {
         if (i > 0) { t.steps[i - 1][2] = "run"; t.steps[i - 1][3] = g.backNote; }
         s[2] = "idle"; s[3] = "";
@@ -1177,7 +1180,11 @@ table.data tr.top td.sc { color: var(--go); }
       if (op === "run") { s[2] = "run"; t.s = t.s === "done" ? t.s : "run"; }
       if (op === "done") { s[2] = "done"; const n = t.steps[wfSel + 1]; if (n && n[2] === "idle") n[2] = "run"; t.done = t.steps.filter((x) => x[2] === "done").length; t.pct = Math.round((t.done / t.total) * 100); }
       if (op === "resume") { s[2] = "run"; if (t.s === "stop") t.s = "run"; }
-      if (op === "rerun") { for (let k = wfSel; k < t.steps.length; k++) if (t.steps[k][2] !== "done" || k === wfSel) t.steps[k][2] = k === wfSel ? "run" : "idle"; toast(`从「${s[0]}」重跑——上游结果冻结。`); }
+      if (op === "rerun") {
+        s[2] = "run";
+        const stale = t.steps.slice(wfSel + 1).filter((x) => x[2] === "done").length;
+        toast(`从「${s[0]}」重跑——上游结果冻结${stale ? `；下游 ${stale} 个已完成步骤将重新执行` : ""}。`);
+      }
       if (op === "submit-gate") { s[2] = "call"; renderWorkflow(); renderWfPanel(); toast(`「${s[0]}」产出已提交，等你过目。`); return; }
       if (op === "reassign") {
         const to = $("#wf-assign").value;
@@ -1218,8 +1225,10 @@ table.data tr.top td.sc { color: var(--go); }
     const ids = Object.keys(ROSTER);
     $("#home-agents").innerHTML = ids.map((id, i) => {
       const a = ROSTER[id];
-      return `<button class="ac-mini" data-s="${paused.has(id) ? "idle" : a.st}" data-agent="${id}" style="--d:${i * 40}">
-        <span class="r1"><span class="mk${a.me ? " me" : ""}">${a.mk}</span><span class="nm">${a.name}</span><span class="st tag-s t-${paused.has(id) ? "done" : a.st}">${paused.has(id) ? "已暂停" : a.stLabel}</span></span>
+      const stNow = id === "me" ? (CALLS.length ? "call" : "idle") : a.st;
+      const lblNow = id === "me" ? (CALLS.length ? CALLS.length + " 件待处理" : "空闲") : a.stLabel;
+      return `<button class="ac-mini" data-s="${paused.has(id) ? "idle" : stNow}" data-agent="${id}" style="--d:${i * 40}">
+        <span class="r1"><span class="mk${a.me ? " me" : ""}">${a.mk}</span><span class="nm">${a.name}</span><span class="st tag-s t-${paused.has(id) ? "done" : stNow}">${paused.has(id) ? "已暂停" : lblNow}</span></span>
         <span class="r2">${a.role} · 在单 <b>${a.tasks.length}</b> · ¥${a.stats.cost}</span>
       </button>`;
     }).join("") + `<button class="ac-mini ac-add" data-goto="agents" style="--d:${ids.length * 40}"><svg class="i"><use href="#i-plus"/></svg>招募 Agent</button>`;
@@ -1227,8 +1236,10 @@ table.data tr.top td.sc { color: var(--go); }
     $("#agents-grid").innerHTML = ids.map((id, i) => {
       const a = ROSTER[id];
       const p = paused.has(id);
-      return `<button class="ac-full" data-s="${p ? "idle" : a.st}" data-agent="${id}" style="--d:${i * 50}">
-        <span class="r1"><span class="mk${a.me ? " me" : ""}">${a.mk}</span><span class="nm">${a.name}</span><span class="role">${a.role}</span><span class="st tag-s t-${p ? "done" : a.st}">${p ? "已暂停" : a.stLabel}</span></span>
+      const stNow = id === "me" ? (CALLS.length ? "call" : "idle") : a.st;
+      const lblNow = id === "me" ? (CALLS.length ? CALLS.length + " 件待处理" : "空闲") : a.stLabel;
+      return `<button class="ac-full" data-s="${p ? "idle" : stNow}" data-agent="${id}" style="--d:${i * 50}">
+        <span class="r1"><span class="mk${a.me ? " me" : ""}">${a.mk}</span><span class="nm">${a.name}</span><span class="role">${a.role}</span><span class="st tag-s t-${p ? "done" : stNow}">${p ? "已暂停" : lblNow}</span></span>
         <p class="duty">${esc(a.duty)}</p>
         <span class="stats"><span>自治 <b>${a.trust ? "L" + a.trust : "—"}</b></span><span>在单 <b>${a.tasks.length}</b></span><span>通过 <b>${a.stats.pass}${typeof a.stats.pass === "number" ? "%" : ""}</b></span><span>本周 <b>¥${a.stats.cost}</b></span></span>
       </button>`;
@@ -1298,6 +1309,8 @@ table.data tr.top td.sc { color: var(--go); }
 
   /* ================= 工作台首屏 ================= */
   function renderHome() {
+    const dec = CALLS.filter((c) => c.t === "决策").length;
+    $("#strip-att").textContent = dec ? `等你决策 ×${dec}` : "";
     const priority = CALLS.filter((c) => c.t !== "知情");
     $("#attend-count").textContent = String(priority.length);
     const top = priority.slice(0, 3);
@@ -1457,7 +1470,7 @@ table.data tr.top td.sc { color: var(--go); }
     const id = `T-${pad(taskSeq++)}`;
     const t = { id, name: text.slice(0, 24), s: "call", crew: ["flowsmith"], pct: 0, done: 0, total: 3,
       latest: ["刚刚", "系统正在排执行方案 · 查失败库 · 配执行者"], arts: [],
-      steps: [["排执行方案", "flowsmith", "run", ""], ["用人审批", "me", "idle", ""], ["开工执行", "scout", "idle", ""]],
+      steps: [["排执行方案", "flowsmith", "run", ""], ["用人审批", "me", "idle", "", null, null, null, [0], { type: "approval", title: "「" + text.slice(0, 16) + "」执行方案待批", pass: "批准 · 开工", backNote: "打回重排（Flowsmith 按你的意见改方案）" }], ["开工执行", "scout", "idle", "", null, null, null, [1]]],
       logs: [["刚刚", `收到任务书：「${text.slice(0, 30)}」`], ["刚刚", "Flowsmith 开始排方案"]], flow: false };
     TASKS.unshift(t);
     renderTaskLists(); renderFilters(); renderHome();
@@ -1466,9 +1479,9 @@ table.data tr.top td.sc { color: var(--go); }
     const row = $(`.trow[data-task="${id}"]`);
     if (row) { row.classList.add("flash-in"); row.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" }); }
     setTimeout(() => {
-      t.s = "run"; t.crew = ["scout", "quill"]; t.pct = 33; t.done = 1;
-      t.steps[0][2] = "done"; t.steps[1][2] = "done"; t.steps[2][2] = "run";
-      t.latest = ["2 分钟后", "方案已批 · Scout 与 Quill 开工"];
+      t.s = "call"; t.pct = 33; t.done = 1;
+      t.steps[0][2] = "done"; t.steps[1][2] = "call";
+      t.latest = ["方案已出", "用人审批轮到你 · 点任务看方案再批"];
       renderTaskLists(); renderFilters(); renderHome();
     }, reduce ? 400 : 2600);
   });
