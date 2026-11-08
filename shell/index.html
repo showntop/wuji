@@ -784,7 +784,11 @@ table.data tr.top td.sc { color: var(--go); }
       steps: [
         ["扫赛道账号", "scout", "done", "", null, [["表", "赛道账号清单 · 38 行"]], [["10:12", "扫「AI 科普」双关键词"], ["10:18", "命中 38 个同类账号"], ["10:26", "清单产出，交打分"]]],
         ["选题打分", "tally", "done", "", null, [["表", "选题打分表 · 12 行"]], [["10:31", "评分模型：热度×竞争度×契合度"], ["10:44", "12 行入表 · 首推 8.9 分"]]],
-        ["定选题方向", "me", "call", "三选一"], ["写首篇脚本", "quill", "idle", "", null, null, null, [2]],
+        ["定选题方向", "me", "call", "三选一", null, null, null, null, { type: "choice", title: "定方向 · 只有你能定", options: [
+          { l: "A · 「会用 AI 的同行，正在悄悄赢」", d: "打分 8.9 · 对标账号 3 个已验证 · Quill 素材现成", done: "done", note: "方向 A · 打分 8.9" },
+          { l: "B · 给上班族的五个 AI 工作流", d: "打分 8.1 · 流量大竞争高 · 适合第 2 篇", done: "done", note: "方向 B · 打分 8.1" },
+          { l: "C · 我自己写一个", d: "自由定题 · Scout 补 30 分钟调研再开工", done: "done", note: "方向 C · 自定", insert: { n: "补充调研", agent: "scout", note: "为方向 C 补样本" } }
+        ] }], ["写首篇脚本", "quill", "idle", "", null, null, null, [2], { type: "approval", title: "首篇过目 · 对外文字 L1 必审", pass: "通过 · 交配图", backNote: "打回重写（标注问题后 Quill 重写）" }],
         ["配图与封面", "lens", "idle", "", null, null, null, [2]], ["多平台分发", "herald", "idle", "", null, null, null, [3, 4]]
       ],
       logs: [["10:12", "Scout 扫「AI 科普」双关键词"], ["10:18", "命中 38 个同类账号"], ["10:26", "《赛道账号清单》产出"], ["10:44", "Tally 打分完成 · 首推 8.9 分"], ["11:54", "请示", "三个候选方向待你定"]], flow: true },
@@ -800,14 +804,18 @@ table.data tr.top td.sc { color: var(--go); }
       logs: [["08:55", "拉取本周 12 条提问"], ["09:28", "Quill 已草拟 9 条 · 3 条涉付费建议你亲自答"]] },
     { id: "T-05", name: "周报自动撰写", s: "call", crew: ["quill", "me", "herald"], pct: 83, done: 5, total: 6,
       latest: ["09:15", "初稿完成，等你审 · 已等 12 分钟"], arts: [["稿", "周报 v3"]],
-      steps: [["汇总本周数据", "tool", "done", ""], ["写初稿", "quill", "done", ""], ["你审稿", "me", "call", "已等 12 分钟"], ["排版配图", "tool", "idle", ""], ["定时发布", "herald", "idle", ""], ["归档", "tool", "idle", ""]],
+      steps: [["汇总本周数据", "tool", "done", ""], ["写初稿", "quill", "done", ""], ["你审稿", "me", "call", "已等 12 分钟", null, null, null, null, { type: "approval", title: "《周报 v3》终稿待你审", pass: "审毕 · 排版发布", backNote: "打回重写（第三节口径存疑，Quill 重写）" }], ["排版配图", "tool", "idle", ""], ["定时发布", "herald", "idle", ""], ["归档", "tool", "idle", ""]],
       logs: [["08:30", "汇总 8 条任务周数据"], ["09:02", "Quill 初稿 2,400 字 · 自评 2 处存疑"], ["09:15", "请示", "等你审 · 已等 12 分钟"]] },
     { id: "T-06", name: "重构分享卡模板", s: "stop", crew: ["lens"], pct: 75, done: 3, total: 4,
       latest: ["08:14", "出图额度用尽，停线 2 小时 · 加购 ¥120 可恢复"], arts: [["图", "模板卡 ×3"]],
       steps: [["拆解旧模板", "lens", "done", "", null, [], [["07:40", "拆解 12 张旧卡"]]],
         ["定新规范", "me", "done", "", null, [], [["08:00", "规范定稿"]]],
         ["试排 3 版", "lens", "done", "", null, [["图", "模板卡 ×3"]], [["08:05", "3 版试排完成"]]],
-        ["批量出图", "lens", "stop", "额度用尽", null, [], [["08:14", "报错", "额度用尽 · 停线 2 小时"]]]],
+        ["批量出图", "lens", "stop", "额度用尽", null, [], [["08:14", "报错", "额度用尽 · 停线 2 小时"]], { type: "staffing", title: "恢复出图 · 换谁干？", options: [
+          { l: "加购 ¥120 · Lens 继续", d: "最顺路 · Lens 熟这套模板", done: "run", note: "已加购恢复 · Lens 出图中" },
+          { l: "交给出图脚本", d: "API 模板出图 · 快但风格固定 · ¥0.4 / 张", done: "run", note: "脚本接手 · API 模板出图", executor: "tool" },
+          { l: "招新 Agent：Cutter · 视觉剪辑", d: "专职出图剪辑 · 自治 L2 抽检 · ¥0.8 / 张 · 入列后全司可用", done: "run", note: "Cutter 接手 · 出图中", executor: "cutter", hire: { mk: "Cu", name: "Cutter", role: "视觉剪辑", duty: "出图、封面、剪辑。", trust: 2, trustNote: "抽检", stats: { runs: 0, pass: 100, rework: 0, cost: 40, asks: 0 }, tasks: [], st: "run", stLabel: "在单 1" } }
+        ] }]],
       logs: [["07:40", "拆解旧模板 · 12 张"], ["08:05", "试排 3 版完成"], ["08:14", "报错", "出图额度用尽 · 停线"]] },
     { id: "T-03", name: "竞品调研：Flowith", s: "run", crew: ["scout", "tally"], pct: 67, done: 4, total: 6,
       latest: ["09:36", "Tally 归因其增长来源"], arts: [["稿", "调研笔记"], ["表", "功能对比"]],
@@ -819,10 +827,11 @@ table.data tr.top td.sc { color: var(--go); }
       logs: [["06:40", "定时触发"], ["07:20", "已推送 · 触达 1,860"]] },
     { id: "T-01", name: "指数定投确认", s: "call", crew: ["tally", "me"], pct: 80, done: 4, total: 5,
       latest: ["09:00", "等你确认下单 · 沪深 300 ¥3,000"], arts: [],
-      steps: [["拉行情", "tool", "done", ""], ["估值分位", "tally", "done", ""], ["调仓建议", "tally", "done", ""], ["你确认下单", "me", "call", ""], ["券商成交", "tool", "idle", ""]],
+      steps: [["拉行情", "tool", "done", ""], ["估值分位", "tally", "done", ""], ["调仓建议", "tally", "done", ""], ["你确认下单", "me", "call", "", null, null, null, null, { type: "approval", title: "加仓沪深 300 ¥3,000", pass: "确认下单", backNote: "本周跳过（下个估值窗口再看）" }], ["券商成交", "tool", "idle", ""]],
       logs: [["08:45", "沪深 300 PE 分位 22%"], ["09:00", "请示", "按规则加仓 ¥3,000 · 等你确认"]] }
   ];
   const ROSTER = {
+    tool:     { mk: "具", name: "脚本", role: "确定性工具", duty: "排版、发布、定时抓取等确定性步骤，不需要智能。", trust: null, trustNote: "不设自治级 · 失败由 Steward 先接", stats: { runs: 214, pass: 99, rework: 2, cost: 18, asks: 0 }, tasks: [], st: "idle", stLabel: "待命" },
     me:       { mk: "我", me: true, name: "我", role: "决策 · 签署", duty: "只有你能做的事：定方向、审对外产出、批用人方案、砍单结账。", trust: null, trustNote: "——", stats: { runs: "—", pass: "—", rework: "—", cost: 0, asks: 8 }, tasks: [["T-09", "定选题方向"], ["T-05", "审周报 v3"], ["T-01", "确认定投"]], st: "call", stLabel: "8 件待处理" },
     flowsmith:{ mk: "FS", name: "Flowsmith", role: "流程规划", duty: "新任务拆解步骤、查失败库、排执行方案；也负责改流程。", trust: 1, trustNote: "方案一律要我批准", stats: { runs: 3, pass: 100, rework: 0, cost: 36, asks: 1 }, tasks: [["T-09", "排案与改流程"]], st: "call", stLabel: "方案待批" },
     steward:  { mk: "St", name: "Steward", role: "巡检运维", duty: "巡检所有任务：异常先自己处理，处理不了的整理成待办给我。", trust: 2, trustNote: "可自行重试、改参数", stats: { runs: 23, pass: 96, rework: 0, cost: 22, asks: 6 }, tasks: [["全部", "每日巡检 ×4"]], st: "run", stLabel: "巡检中" },
@@ -971,10 +980,9 @@ table.data tr.top td.sc { color: var(--go); }
       ${t.s === "run" || t.s === "call" ? `<button class="btn sm" data-wf="pause">暂停任务</button>` : ""}
       ${t.s === "hold" ? `<button class="btn sm go" data-wf="unpause">恢复任务</button>` : ""}
       ${t.s === "stop" ? `<button class="btn sm go" data-wf="resume">解除阻塞</button>` : ""}
-      ${t.flow ? `<button class="btn sm" data-wf="journey">无限画布操盘</button>` : ""}`;
+      `;
     $$("#wf-acts [data-wf]").forEach((b) => b.addEventListener("click", () => {
       const op = b.dataset.wf;
-      if (op === "journey") { location.href = "journey.html"; return; }
       if (op === "pause") { t.s = "hold"; toast(`${t.id} 已暂停——在跑步骤挂起。`); }
       if (op === "unpause") { t.s = "run"; toast(`${t.id} 恢复运行。`); }
       if (op === "resume") { const sn = t.steps.find((s) => s[2] === "stop"); if (sn) sn[2] = "run"; t.s = "run"; t.latest = [t.latest[0], "阻塞已解除，恢复运行"]; toast(`${t.id} 解除阻塞。`); }
@@ -1058,6 +1066,69 @@ table.data tr.top td.sc { color: var(--go); }
     ];
     function st(x) { return x[2]; }
   }
+  const gateOf = (st2) => [st2[8], st2[7]].find((x) => x && typeof x === "object" && !Array.isArray(x) && x.type) || null;
+  function gateHtml(t, i) {
+    const g = t.steps[i] ? gateOf(t.steps[i]) : null;
+    const st = t.steps[i] && t.steps[i][2];
+    if (!g || (st !== "call" && !(st === "stop" && g.type === "staffing"))) return "";
+    if (g.type === "approval") {
+      return `<div class="dw-sec"><div class="dw-h">${esc(g.title)} <small>等你</small></div>
+        <div class="dw-acts">
+          <button class="btn sm go" data-gate="pass">${esc(g.pass)}</button>
+          <button class="btn sm warn" data-gate="back">${esc(g.backNote)}</button>
+        </div></div>`;
+    }
+    const opts = g.options.map((o, k) => `
+      <label class="jp-opt"><input type="radio" name="gate-opt" value="${k}"${k === 0 ? " checked" : ""}><span><span class="ot">${esc(o.l)}</span><span class="od">${esc(o.d)}</span></span></label>`).join("");
+    return `<div class="dw-sec"><div class="dw-h">${esc(g.title)} <small>选一项 · 即时生效</small></div>${opts}
+      <div class="dw-acts"><button class="btn sm go" data-gate="pick">确认</button></div></div>`;
+  }
+  function applyGate(kind, t, i) {
+    const s = t.steps[i];
+    const g = gateOf(s);
+    if (kind === "pass" || kind === "back") {
+      if (kind === "pass") {
+        s[2] = "done"; if (g.pass) s[3] = g.pass.split(" · ")[0] + " · 已过审";
+        toast(`${t.id}「${s[0]}」已过审——下游接续。`);
+      } else {
+        if (i > 0) { t.steps[i - 1][2] = "run"; t.steps[i - 1][3] = g.backNote; }
+        s[2] = "idle"; s[3] = "";
+        toast(`已打回：「${t.steps[i - 1] ? t.steps[i - 1][0] : "上游"}」重做，完成后再次递你过目。`);
+      }
+    } else {
+      const k = +document.querySelector('input[name="gate-opt"]:checked').value;
+      const o = g.options[k];
+      if (o.hire) {
+        ROSTER[o.hire.name.toLowerCase()] = Object.assign({ id: o.hire.name.toLowerCase() }, o.hire);
+        ROSTER[o.hire.name.toLowerCase()].tasks = [[t.id, s[0]]];
+        toast(`${o.hire.name} 入列（自治 L${o.hire.trust}）——Agent 页可见，全司可改派。`);
+        renderAgents();
+      }
+      if (o.executor) s[1] = o.executor;
+      if (!t.crew.includes(s[1])) t.crew.push(s[1]);
+      s[2] = o.done || "run";
+      if (o.note) s[3] = o.note;
+      if (o.insert) {
+        t.steps.splice(i + 1, 0, [o.insert.n, o.insert.agent, "run", o.insert.note, null, null, [[ "—", "按你的方向补充样本" ]], [i]]);
+        t.total += 1;
+        toast(`按你的决定长出新支线：「${o.insert.n}」（Scout 执行中）。`);
+      } else {
+        toast(`${t.id}「${s[0]}」：${o.l.split(" · ")[0]}——已生效。`);
+      }
+    }
+    t.done = t.steps.filter((x) => x[2] === "done").length;
+    t.pct = Math.round((t.done / t.total) * 100);
+    // 下游解锁：deps 全部 done 的 idle 步骤自动起跑
+    const depsOf = (i2) => (t.steps[i2][7] != null && t.steps[i2][7].length) ? t.steps[i2][7] : (i2 > 0 ? [i2 - 1] : []);
+    t.steps.forEach((x, i2) => {
+      if (x[2] !== "idle") return;
+      const ds = depsOf(i2);
+      if (ds.length && ds.every((d) => t.steps[d][2] === "done")) x[2] = "run";
+    });
+    t.crew = [...new Set(t.steps.filter((x) => x[2] === "run" || x[2] === "call").map((x) => x[1]))];
+    renderTaskLists(); renderFilters(); renderHome();
+    renderWorkflow(); renderWfPanel();
+  }
   function renderWfPanel() {
     const t = curTask;
     const body = $("#wfp-body");
@@ -1090,11 +1161,13 @@ table.data tr.top td.sc { color: var(--go); }
           ${s[2] === "run" ? `<button class="btn sm" data-sops="pause">暂停此步</button>` : ""}
           ${s[2] === "hold" || s[2] === "idle" ? `<button class="btn sm go" data-sops="run">启动此步</button>` : ""}
           ${s[2] === "call" ? `<button class="btn sm go" data-sops="done">我处理完了</button>` : ""}
+          ${s[2] === "run" && gateOf(s) && gateOf(s).type === "approval" ? `<button class="btn sm go" data-sops="submit-gate">完成并提交过目</button>` : ""}
           ${s[2] === "stop" ? `<button class="btn sm go" data-sops="resume">解除阻塞</button>` : ""}
           <button class="btn sm" data-sops="rerun">重跑此步</button>
         </div>
         ${s[1] !== "me" ? `<div class="wfp-assign"><select id="wf-assign">${executors.map((id) => `<option value="${id}">${ROSTER[id].name} · ${ROSTER[id].role} · L${ROSTER[id].trust ?? "—"}</option>`).join("")}</select><button class="btn sm" data-sops="reassign">改派</button></div>` : `<p class="note">这一步由我亲自执行——如需交出去，用上面的改派。</p>`}
       </div>
+      ${gateHtml(t, wfSel)}
       <div class="dw-sec"><div class="dw-h">运行时序日志 <small>本步骤</small></div>
         <ul class="log">${stepLogs(t, wfSel).map((l) => `<li><time>${l[0]}</time>${l[1] === "请示" ? '<span class="ap">请示</span> ' : ""}${l.at(-1)}</li>`).join("")}</ul>
       </div>`;
@@ -1105,6 +1178,7 @@ table.data tr.top td.sc { color: var(--go); }
       if (op === "done") { s[2] = "done"; const n = t.steps[wfSel + 1]; if (n && n[2] === "idle") n[2] = "run"; t.done = t.steps.filter((x) => x[2] === "done").length; t.pct = Math.round((t.done / t.total) * 100); }
       if (op === "resume") { s[2] = "run"; if (t.s === "stop") t.s = "run"; }
       if (op === "rerun") { for (let k = wfSel; k < t.steps.length; k++) if (t.steps[k][2] !== "done" || k === wfSel) t.steps[k][2] = k === wfSel ? "run" : "idle"; toast(`从「${s[0]}」重跑——上游结果冻结。`); }
+      if (op === "submit-gate") { s[2] = "call"; renderWorkflow(); renderWfPanel(); toast(`「${s[0]}」产出已提交，等你过目。`); return; }
       if (op === "reassign") {
         const to = $("#wf-assign").value;
         const from = ROSTER[s[1]] ? ROSTER[s[1]].name : "脚本";
@@ -1115,6 +1189,7 @@ table.data tr.top td.sc { color: var(--go); }
       renderTaskLists(); renderFilters(); renderHome();
       renderWorkflow(); renderWfPanel();
     }));
+    $$("#wfp-body [data-gate]").forEach((b) => b.addEventListener("click", () => applyGate(b.dataset.gate, t, wfSel)));
   }
 
   /* 画布平移缩放 */
