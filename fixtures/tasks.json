@@ -1,0 +1,658 @@
+[
+  {
+    "id": "T-09",
+    "name": "AI 科普自媒体闭环",
+    "status": "waiting",
+    "createdAt": "2026-11-04T10:04:00",
+    "updatedAt": "2026-11-07T11:54:00",
+    "criteria": "30 天 ≥ 500 粉 · 单篇 ≥ 5,000 阅读",
+    "budget": {
+      "weeklyCost": 240,
+      "myMinutes": 12
+    },
+    "steps": [
+      {
+        "id": "s1",
+        "name": "扫赛道账号",
+        "executor": "scout",
+        "status": "done",
+        "deps": [],
+        "artifacts": [
+          {
+            "kind": "table",
+            "name": "赛道账号清单 · 38 行"
+          }
+        ],
+        "logs": [],
+        "note": "38 个同类账号"
+      },
+      {
+        "id": "s2",
+        "name": "选题打分",
+        "executor": "tally",
+        "status": "done",
+        "deps": [
+          "s1"
+        ],
+        "artifacts": [
+          {
+            "kind": "table",
+            "name": "选题打分表 · 12 行"
+          }
+        ],
+        "logs": [],
+        "note": "首推 8.9 分"
+      },
+      {
+        "id": "s3",
+        "name": "定选题方向",
+        "executor": "me",
+        "status": "waiting",
+        "deps": [
+          "s2"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "note": "三选一",
+        "gate": {
+          "type": "choice",
+          "title": "定方向 · 只有你能定",
+          "options": [
+            {
+              "label": "A · 「会用 AI 的同行，正在悄悄赢」",
+              "desc": "打分 8.9 · 对标账号 3 个已验证 · Quill 素材现成",
+              "effect": {
+                "note": "方向 A · 打分 8.9"
+              }
+            },
+            {
+              "label": "B · 给上班族的五个 AI 工作流",
+              "desc": "打分 8.1 · 流量大竞争高 · 适合第 2 篇",
+              "effect": {
+                "note": "方向 B · 打分 8.1"
+              }
+            },
+            {
+              "label": "C · 我自己写一个",
+              "desc": "自由定题 · Scout 补 30 分钟调研再开工",
+              "effect": {
+                "note": "方向 C · 自定",
+                "insertStep": {
+                  "name": "补充调研",
+                  "executor": "scout",
+                  "note": "为方向 C 补样本"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "s4",
+        "name": "写首篇脚本",
+        "executor": "quill",
+        "status": "idle",
+        "deps": [
+          "s3"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "gate": {
+          "type": "approval",
+          "title": "首篇过目 · 对外文字 L1 必审",
+          "passLabel": "通过 · 交配图",
+          "backLabel": "打回重写",
+          "backTarget": "self"
+        }
+      },
+      {
+        "id": "s5",
+        "name": "配图与封面",
+        "executor": "lens",
+        "status": "idle",
+        "deps": [
+          "s3"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "note": "统一模板 · 3 张"
+      },
+      {
+        "id": "s6",
+        "name": "多平台分发",
+        "executor": "herald",
+        "status": "idle",
+        "deps": [
+          "s4",
+          "s5"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "note": "公众号 · 小红书 · B 站"
+      },
+      {
+        "id": "s7",
+        "name": "数据回流 · 周复盘",
+        "executor": "tally",
+        "status": "idle",
+        "deps": [
+          "s6"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "note": "每周一 08:00 · 对判据"
+      },
+      {
+        "id": "s8",
+        "name": "变现 · 星图与赞赏接单",
+        "executor": "me",
+        "status": "idle",
+        "deps": [
+          "s7"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "note": "判据达成后开启"
+      }
+    ]
+  },
+  {
+    "id": "T-07",
+    "name": "东京五日行程规划",
+    "status": "running",
+    "createdAt": "2026-10-28T08:30:00",
+    "updatedAt": "2026-11-07T09:42:00",
+    "budget": {
+      "weeklyCost": 60,
+      "myMinutes": 74
+    },
+    "steps": [
+      {
+        "id": "s1",
+        "name": "检索机酒",
+        "executor": "scout",
+        "status": "done",
+        "deps": [],
+        "artifacts": [
+          {
+            "kind": "table",
+            "name": "机酒比价"
+          }
+        ],
+        "logs": [],
+        "note": "6 方案"
+      },
+      {
+        "id": "s2",
+        "name": "景点打分",
+        "executor": "tally",
+        "status": "done",
+        "deps": [],
+        "artifacts": [
+          {
+            "kind": "table",
+            "name": "景点分 · 18 选 9"
+          }
+        ],
+        "logs": [],
+        "note": "18 选 9"
+      },
+      {
+        "id": "s3",
+        "name": "写行程草案",
+        "executor": "quill",
+        "status": "running",
+        "deps": [
+          "s1",
+          "s2"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "note": "60%",
+        "progress": 60
+      },
+      {
+        "id": "s4",
+        "name": "逐日排程",
+        "executor": "me",
+        "status": "idle",
+        "deps": [
+          "s3"
+        ],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s5",
+        "name": "出行程表",
+        "executor": "tool",
+        "status": "idle",
+        "deps": [
+          "s4"
+        ],
+        "artifacts": [],
+        "logs": []
+      }
+    ]
+  },
+  {
+    "id": "T-06",
+    "name": "重构分享卡模板",
+    "status": "blocked",
+    "createdAt": "2026-11-06T07:30:00",
+    "updatedAt": "2026-11-07T08:14:00",
+    "steps": [
+      {
+        "id": "s1",
+        "name": "拆解旧模板",
+        "executor": "lens",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": [],
+        "note": "12 张"
+      },
+      {
+        "id": "s2",
+        "name": "定新规范",
+        "executor": "me",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s3",
+        "name": "试排 3 版",
+        "executor": "lens",
+        "status": "done",
+        "deps": [],
+        "artifacts": [
+          {
+            "kind": "image",
+            "name": "模板卡 ×3"
+          }
+        ],
+        "logs": []
+      },
+      {
+        "id": "s4",
+        "name": "批量出图",
+        "executor": "lens",
+        "status": "blocked",
+        "deps": [],
+        "artifacts": [],
+        "logs": [],
+        "note": "额度用尽 · 停线 2 小时",
+        "gate": {
+          "type": "staffing",
+          "title": "恢复出图 · 换谁干？",
+          "options": [
+            {
+              "label": "加购 ¥120 · Lens 继续",
+              "desc": "最顺路 · Lens 熟这套模板",
+              "effect": {
+                "status": "running",
+                "note": "已加购恢复 · Lens 出图中"
+              }
+            },
+            {
+              "label": "交给出图脚本",
+              "desc": "API 模板出图 · 快但风格固定 · ¥0.4 / 张",
+              "effect": {
+                "status": "running",
+                "note": "脚本接手 · API 模板出图",
+                "executor": "tool"
+              }
+            },
+            {
+              "label": "招新 Agent：Cutter · 视觉剪辑",
+              "desc": "专职出图剪辑 · 自治 L2 抽检 · ¥0.8 / 张 · 入列后全司可用",
+              "effect": {
+                "status": "running",
+                "note": "Cutter 接手 · 出图中",
+                "executor": "cutter",
+                "hireAgent": {
+                  "name": "Cutter",
+                  "role": "视觉剪辑",
+                  "mk": "Cu",
+                  "duty": "出图、封面、剪辑。",
+                  "trust": 2,
+                  "trustNote": "抽检",
+                  "stats": {
+                    "runs": 0,
+                    "pass": 100,
+                    "rework": 0,
+                    "cost": 40,
+                    "asks": 0
+                  },
+                  "taskIds": [],
+                  "status": "running"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "T-05",
+    "name": "周报自动撰写",
+    "status": "waiting",
+    "createdAt": "2026-11-07T08:30:00",
+    "updatedAt": "2026-11-07T09:15:00",
+    "steps": [
+      {
+        "id": "s1",
+        "name": "汇总本周数据",
+        "executor": "tool",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s2",
+        "name": "写初稿",
+        "executor": "quill",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": [],
+        "note": "2,400 字 · 自评 2 处存疑"
+      },
+      {
+        "id": "s3",
+        "name": "你审稿",
+        "executor": "me",
+        "status": "waiting",
+        "deps": [
+          "s2"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "note": "已等 12 分钟",
+        "gate": {
+          "type": "approval",
+          "title": "《周报 v3》终稿待你审",
+          "passLabel": "审毕 · 排版发布",
+          "backLabel": "打回重写",
+          "backTarget": "upstream"
+        }
+      },
+      {
+        "id": "s4",
+        "name": "排版配图",
+        "executor": "tool",
+        "status": "idle",
+        "deps": [
+          "s3"
+        ],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s5",
+        "name": "定时发布",
+        "executor": "herald",
+        "status": "idle",
+        "deps": [
+          "s4"
+        ],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s6",
+        "name": "归档",
+        "executor": "tool",
+        "status": "idle",
+        "deps": [
+          "s5"
+        ],
+        "artifacts": [],
+        "logs": []
+      }
+    ]
+  },
+  {
+    "id": "T-04",
+    "name": "社群答疑草拟",
+    "status": "running",
+    "createdAt": "2026-11-07T08:55:00",
+    "updatedAt": "2026-11-07T09:28:00",
+    "steps": [
+      {
+        "id": "s1",
+        "name": "拉取提问",
+        "executor": "tool",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": [],
+        "note": "12 条"
+      },
+      {
+        "id": "s2",
+        "name": "逐条草拟",
+        "executor": "quill",
+        "status": "running",
+        "deps": [],
+        "artifacts": [],
+        "logs": [],
+        "note": "9/12",
+        "progress": 75
+      },
+      {
+        "id": "s3",
+        "name": "补答 3 条付费咨询",
+        "executor": "me",
+        "status": "idle",
+        "deps": [
+          "s2"
+        ],
+        "artifacts": [],
+        "logs": []
+      }
+    ]
+  },
+  {
+    "id": "T-03",
+    "name": "竞品调研：Flowith",
+    "status": "running",
+    "createdAt": "2026-11-07T07:50:00",
+    "updatedAt": "2026-11-07T09:36:00",
+    "steps": [
+      {
+        "id": "s1",
+        "name": "检索报道",
+        "executor": "scout",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": [],
+        "note": "32 篇"
+      },
+      {
+        "id": "s2",
+        "name": "读定价页",
+        "executor": "scout",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s3",
+        "name": "拆功能",
+        "executor": "scout",
+        "status": "done",
+        "deps": [
+          "s1"
+        ],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s4",
+        "name": "增长归因",
+        "executor": "tally",
+        "status": "running",
+        "deps": [
+          "s1",
+          "s2"
+        ],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s5",
+        "name": "出对比表",
+        "executor": "tally",
+        "status": "idle",
+        "deps": [
+          "s3",
+          "s4"
+        ],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s6",
+        "name": "写结论",
+        "executor": "quill",
+        "status": "idle",
+        "deps": [
+          "s5"
+        ],
+        "artifacts": [],
+        "logs": []
+      }
+    ]
+  },
+  {
+    "id": "T-02",
+    "name": "星球周报分发",
+    "status": "done",
+    "createdAt": "2026-11-07T06:40:00",
+    "updatedAt": "2026-11-07T07:20:00",
+    "steps": [
+      {
+        "id": "s1",
+        "name": "汇总内容",
+        "executor": "tool",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s2",
+        "name": "配图",
+        "executor": "lens",
+        "status": "done",
+        "deps": [],
+        "artifacts": [
+          {
+            "kind": "image",
+            "name": "触达图"
+          }
+        ],
+        "logs": []
+      },
+      {
+        "id": "s3",
+        "name": "排版",
+        "executor": "tool",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s4",
+        "name": "推送",
+        "executor": "herald",
+        "status": "done",
+        "deps": [],
+        "artifacts": [
+          {
+            "kind": "doc",
+            "name": "周报 44 期"
+          }
+        ],
+        "logs": [],
+        "note": "触达 1,860 · 打开率 41%"
+      }
+    ]
+  },
+  {
+    "id": "T-01",
+    "name": "指数定投确认",
+    "status": "waiting",
+    "createdAt": "2026-11-07T08:45:00",
+    "updatedAt": "2026-11-07T09:00:00",
+    "steps": [
+      {
+        "id": "s1",
+        "name": "拉行情",
+        "executor": "tool",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": []
+      },
+      {
+        "id": "s2",
+        "name": "估值分位",
+        "executor": "tally",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": [],
+        "note": "PE 22%"
+      },
+      {
+        "id": "s3",
+        "name": "调仓建议",
+        "executor": "tally",
+        "status": "done",
+        "deps": [],
+        "artifacts": [],
+        "logs": [],
+        "note": "加仓 ¥3,000"
+      },
+      {
+        "id": "s4",
+        "name": "你确认下单",
+        "executor": "me",
+        "status": "waiting",
+        "deps": [
+          "s3"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "gate": {
+          "type": "approval",
+          "title": "加仓沪深 300 ¥3,000",
+          "passLabel": "确认下单",
+          "backLabel": "本周跳过",
+          "backTarget": "upstream"
+        }
+      },
+      {
+        "id": "s5",
+        "name": "券商成交",
+        "executor": "tool",
+        "status": "idle",
+        "deps": [
+          "s4"
+        ],
+        "artifacts": [],
+        "logs": [],
+        "note": "T+1 确认"
+      }
+    ]
+  }
+]

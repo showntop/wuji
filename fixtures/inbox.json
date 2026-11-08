@@ -1,0 +1,80 @@
+[
+  {
+    "id": "d1",
+    "kind": "decision",
+    "from": "quill",
+    "taskId": "T-05",
+    "title": "《周报 v3》终稿待你审",
+    "context": "Quill 自评第三节数据口径存疑，已标注 2 处。对外文字 L1 必审。已等 12 分钟。",
+    "minutes": 18,
+    "actions": []
+  },
+  {
+    "id": "d2",
+    "kind": "decision",
+    "from": "steward",
+    "taskId": "T-06",
+    "title": "出图额度用尽 · 加购 ¥120 恢复",
+    "context": "Lens 停线 2 小时。加购即恢复；或保持停线等 Lens 空闲（约 45 分钟）。",
+    "minutes": 1,
+    "actions": []
+  },
+  {
+    "id": "d3",
+    "kind": "decision",
+    "from": "flowsmith",
+    "title": "「竞品月报」执行方案待批",
+    "context": "Scout 全自主检索与整理 · 2 步 · ¥20。批准即开工。",
+    "minutes": 2,
+    "actions": []
+  },
+  {
+    "id": "c1",
+    "kind": "confirm",
+    "from": "quill",
+    "taskId": "T-04",
+    "title": "12 条答疑草拟完成",
+    "context": "9 条草稿可直发，3 条涉付费咨询建议你亲自答。",
+    "minutes": 25,
+    "actions": []
+  },
+  {
+    "id": "c2",
+    "kind": "confirm",
+    "from": "scout",
+    "taskId": "T-07",
+    "title": "机酒比价表就绪 · 待确认进排程",
+    "context": "按预算 ¥8,000 筛出 6 个方案。确认后 Quill 出行程表。",
+    "minutes": 10,
+    "actions": []
+  },
+  {
+    "id": "k1",
+    "kind": "fyi",
+    "from": "tally",
+    "taskId": "T-09",
+    "title": "选题打分完成：12 行入表",
+    "context": "首推「会用 AI 的同行」8.9 分，对标账号 3 个已验证。",
+    "minutes": 0,
+    "actions": []
+  },
+  {
+    "id": "k2",
+    "kind": "fyi",
+    "from": "herald",
+    "taskId": "T-02",
+    "title": "周报 44 期已推送",
+    "context": "触达 1,860 · 打开率 41%（+3pt）。明日 08:00 自动复跑。",
+    "minutes": 0,
+    "actions": []
+  },
+  {
+    "id": "k3",
+    "kind": "fyi",
+    "from": "tally",
+    "title": "本周判断命中 9 / 13",
+    "context": "两笔决策到回看日：T-03 涨粉预测、T-07 预算执行。",
+    "minutes": 0,
+    "actions": []
+  }
+]

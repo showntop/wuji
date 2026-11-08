@@ -7,8 +7,11 @@
   "dependencies": {
     "zod": "^3.23.8"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "vitest": "^1.6.0"
+  },
   "scripts": {
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit && vitest run",
+    "test": "vitest run"
   }
 }

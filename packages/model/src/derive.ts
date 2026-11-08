@@ -1,6 +1,30 @@
 // 派生规则 —— 纯函数，store 只做调用（ENGINEERING.md §2.2）
 import type { Step, StepStatus, TaskStatus } from "./types";
 
+/** 环检测（fixture 校验用）：真 DAG 返回 true */
+export function isAcyclic(steps: Step[]): boolean {
+  const idToIdx = new Map(steps.map((s, i) => [s.id, i]));
+  const state = steps.map(() => 0); // 0=未访问 1=在栈 2=完成
+  let ok = true;
+  const visit = (i: number) => {
+    if (state[i] === 1) { ok = false; return; }
+    if (state[i] === 2) return;
+    state[i] = 1;
+    for (const d of depsOf(steps, i)) { const di = idToIdx.get(d); if (di != null) visit(di); }
+    state[i] = 2;
+  };
+  steps.forEach((_, i) => visit(i));
+  return ok;
+}
+
+function depsOf(steps: Step[], i: number): string[] {
+  const s = steps[i];
+  if (!s) return [];
+  if (s.deps.length) return s.deps;
+  const prev = i > 0 ? steps[i - 1] : undefined;
+  return prev ? [prev.id] : [];
+}
+
 const STEP_PRIORITY: StepStatus[] = ["blocked", "waiting", "external", "running", "done", "idle"];
 const TASK_OF_STEP: Record<StepStatus, TaskStatus> = {
   blocked: "blocked", waiting: "waiting", external: "external",

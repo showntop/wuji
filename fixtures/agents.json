@@ -1,0 +1,188 @@
+[
+  {
+    "id": "me",
+    "name": "我",
+    "role": "决策 · 签署",
+    "mk": "我",
+    "duty": "只有你能做的事：定方向、审对外产出、批用人方案、砍单结账。",
+    "trust": null,
+    "trustNote": "你的动作一律直通账本",
+    "stats": {
+      "runs": 0,
+      "pass": 0,
+      "rework": 0,
+      "cost": 0,
+      "asks": 8
+    },
+    "taskIds": [
+      "T-09",
+      "T-05",
+      "T-01"
+    ],
+    "status": "waiting"
+  },
+  {
+    "id": "tool",
+    "name": "脚本",
+    "role": "确定性工具",
+    "mk": "具",
+    "duty": "排版、发布、定时抓取等确定性步骤，不需要智能。",
+    "trust": null,
+    "trustNote": "不设自治级 · 失败由 Steward 先接",
+    "stats": {
+      "runs": 214,
+      "pass": 99,
+      "rework": 2,
+      "cost": 18,
+      "asks": 0
+    },
+    "taskIds": [],
+    "status": "idle"
+  },
+  {
+    "id": "flowsmith",
+    "name": "Flowsmith",
+    "role": "流程规划",
+    "mk": "Fs",
+    "duty": "新任务拆解步骤、查失败库、排执行方案；也负责改流程。",
+    "trust": 1,
+    "trustNote": "方案一律要我批准",
+    "stats": {
+      "runs": 3,
+      "pass": 100,
+      "rework": 0,
+      "cost": 36,
+      "asks": 1
+    },
+    "taskIds": [
+      "T-09"
+    ],
+    "status": "waiting"
+  },
+  {
+    "id": "steward",
+    "name": "Steward",
+    "role": "巡检运维",
+    "mk": "St",
+    "duty": "巡检所有任务：异常先自己处理，处理不了的整理成待办给我。",
+    "trust": 2,
+    "trustNote": "可自行重试、改参数",
+    "stats": {
+      "runs": 23,
+      "pass": 96,
+      "rework": 0,
+      "cost": 22,
+      "asks": 6
+    },
+    "taskIds": [],
+    "status": "running"
+  },
+  {
+    "id": "scout",
+    "name": "Scout",
+    "role": "调研",
+    "mk": "Sc",
+    "duty": "检索、找线索、扫赛道、竞品调研。",
+    "trust": 3,
+    "trustNote": "全自主 · 产物入库",
+    "stats": {
+      "runs": 61,
+      "pass": 97,
+      "rework": 2,
+      "cost": 140,
+      "asks": 0
+    },
+    "taskIds": [
+      "T-09",
+      "T-07",
+      "T-03"
+    ],
+    "status": "running"
+  },
+  {
+    "id": "quill",
+    "name": "Quill",
+    "role": "写作",
+    "mk": "Qu",
+    "duty": "脚本、长文、文案、话术、需求卡。",
+    "trust": 1,
+    "trustNote": "对外文字须经我过目（L1 必审）",
+    "stats": {
+      "runs": 48,
+      "pass": 88,
+      "rework": 6,
+      "cost": 310,
+      "asks": 1
+    },
+    "taskIds": [
+      "T-09",
+      "T-07",
+      "T-04",
+      "T-03"
+    ],
+    "status": "running"
+  },
+  {
+    "id": "lens",
+    "name": "Lens",
+    "role": "视觉",
+    "mk": "Le",
+    "duty": "出图、封面、分享卡、剪辑。",
+    "trust": 2,
+    "trustNote": "抽检 · 本周停线 1 次",
+    "stats": {
+      "runs": 39,
+      "pass": 82,
+      "rework": 7,
+      "cost": 820,
+      "asks": 2
+    },
+    "taskIds": [
+      "T-06"
+    ],
+    "status": "blocked"
+  },
+  {
+    "id": "herald",
+    "name": "Herald",
+    "role": "分发触达",
+    "mk": "He",
+    "duty": "外联、推送序列、多平台分发。",
+    "trust": 2,
+    "trustNote": "抽检",
+    "stats": {
+      "runs": 15,
+      "pass": 96,
+      "rework": 0,
+      "cost": 60,
+      "asks": 0
+    },
+    "taskIds": [
+      "T-05",
+      "T-09"
+    ],
+    "status": "running"
+  },
+  {
+    "id": "tally",
+    "name": "Tally",
+    "role": "数据分析",
+    "mk": "Ta",
+    "duty": "打分、分群、归因、记账、判据进度。",
+    "trust": 2,
+    "trustNote": "抽检",
+    "stats": {
+      "runs": 33,
+      "pass": 94,
+      "rework": 1,
+      "cost": 90,
+      "asks": 2
+    },
+    "taskIds": [
+      "T-09",
+      "T-03",
+      "T-01"
+    ],
+    "status": "running"
+  }
+]
