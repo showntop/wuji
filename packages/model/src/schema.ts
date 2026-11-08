@@ -2,7 +2,6 @@
 import { z } from "zod";
 
 export const stepStatusSchema = z.enum(["idle", "running", "waiting", "blocked", "external", "done"]);
-export const logEntrySchema = z.object({ t: z.string(), kind: z.enum(["info", "ask", "error"]), text: z.string() });
 export const artifactRefSchema = z.object({ kind: z.enum(["table", "doc", "image", "note"]), name: z.string() });
 
 export const stepSchema = z.object({
@@ -13,7 +12,6 @@ export const stepSchema = z.object({
   progress: z.number().min(0).max(100).optional(),
   deps: z.array(z.string()),
   artifacts: z.array(artifactRefSchema),
-  logs: z.array(logEntrySchema),
   gate: z.any().optional(), // 门的效果机在 store；schema 细化随 M1
 });
 

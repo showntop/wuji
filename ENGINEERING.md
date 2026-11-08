@@ -134,7 +134,16 @@ interface LedgerEvent {
 - **下游解锁**：步骤 deps 全 done 且自身 idle → 自动转 running（唯一自动迁移，其余迁移全部由动作或门触发）。
 - `Agent.status` / `Agent.taskIds` 由 tasks 反推。
 
-### 2.3 迁移规则（演示 → fixture）
+### 2.4 运行时序实现（单一事件流）
+
+**不做两套日志**（演示中的 `Step.logs` 已废除）。一切运行事件归一流入账本，面板是纯投影：
+
+- **归一化**：`store/ledger.ts normalizeEvent()` 把 harness `StepEvent`、人的 store 动作、系统事件统一转成 `LedgerEvent`（actor = 步骤执行者或「我」，带 taskId/stepId）。
+- **分级**：`progress` 只更新 `step.progress`（节点进度条实时变，**不落账本**，防刷屏）；`log` / `artifact` / `done` / `blocked` 落账本。
+- **查询**：`store/timeline.ts` 两个无状态 selector——`selectStepTimeline(taskId, stepId)` 与 `selectTaskTimeline(taskId)`；账本「事件」镜片同源、不加 stepId。
+- **P0 mock 即活数据**：mockHarness 定时发 progress → 节点进度条真动；done → 落账本、解锁下游。M3 起时序面板是真数据，fixture 只提供初始状态。
+
+### 2.5 迁移规则（演示 → fixture）
 
 - 现演示数据逐条映射为 fixture JSON（`fixtures/tasks.json` 等），T-09 补「数据回流」「变现」两步补足闭环；全部过 zod。
 - 判据、预算等演示中隐含的字段一并显式化。
@@ -201,6 +210,7 @@ wuji/
 ## 5. 模块职责要点
 
 - **model/derive.ts**：任务状态归约、进度、下游解锁、Agent 状态反推——全部纯函数（§2.2），store 只做调用。
+- **store/timeline.ts**：运行时序 selector（§2.4）。
 - **store/actions/gate.ts**：三 gate 的效果机（choice：改结构可长新支线；approval：pass/back，backTarget 按 gate 定义；staffing：hire 真入编）。每个效果 = 状态变更 + 1..n 条 LedgerEvent。
 - **workflow/layout.ts**：最长路径分层 + 同层居中（演示算法移植，补单测：分叉/汇合/孤根/环检测）。
 - **viewers**：按 `Artifact.content.type` 分派四视图；表格排序为纯函数。

@@ -9,8 +9,6 @@ export type ArtifactKind = "table" | "doc" | "image" | "note";
 
 export interface ArtifactRef { kind: ArtifactKind; name: string }
 
-export interface LogEntry { t: string; kind: "info" | "ask" | "error"; text: string }
-
 export interface ChoiceOption {
   label: string; desc: string;
   effect: { note?: string; insertStep?: { name: string; executor: ExecutorId; note?: string } };
@@ -35,7 +33,7 @@ export interface Step {
   progress?: number;
   deps: string[];                 // 前置步骤 id；空 = 根（可并行）
   artifacts: ArtifactRef[];
-  logs: LogEntry[];
+  // 运行时序不落步骤：唯一事件流在 ledger（ENGINEERING.md §2.4）
   gate?: Gate;                    // 需要人的门：choice=判断 approval=审批 staffing=用人
 }
 
