@@ -44,7 +44,7 @@ button { cursor: pointer; }
 svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* ---------- 横梁（旅程版：紧凑） ---------- */
+/* ---------- 顶栏（旅程版：紧凑） ---------- */
 .gantry {
   position: sticky; top: 0; z-index: 30;
   display: flex; align-items: center; gap: 20px;
@@ -319,7 +319,7 @@ table.data tr.top td { color: var(--ink); }
 table.data td.sc { font-family: var(--f-cond); font-weight: 700; font-size: 16px; }
 table.data tr.top td.sc { color: var(--go); }
 
-/* ---------- 召唤栏 ---------- */
+/* ---------- 派单栏 ---------- */
 .summon-zone { position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 36px 16px 14px; background: linear-gradient(rgba(22,22,20,0), rgba(22,22,20,.88) 44%, var(--floor) 68%); pointer-events: none; }
 .summon-zone > * { pointer-events: auto; }
 .summon { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; width: min(740px, 100%); background: var(--floor-2); border: 1px solid var(--line-2); box-shadow: 0 12px 34px rgba(0,0,0,.55); transition: border-color .2s, box-shadow .2s; }
@@ -392,7 +392,7 @@ table.data tr.top td.sc { color: var(--go); }
     <button id="tab-flow" aria-pressed="false">T-09 · flow</button>
   </div>
   <div class="grow">
-    <button class="btn" id="k-btn"><span class="kbd" style="font-family:var(--f-cond);font-size:12.5px;color:var(--ink-3);border:1px solid var(--line-2);padding:0 5px;margin-right:2px">⌘K</span>召唤</button>
+    <button class="btn" id="k-btn"><span class="kbd" style="font-family:var(--f-cond);font-size:12.5px;color:var(--ink-3);border:1px solid var(--line-2);padding:0 5px;margin-right:2px">⌘K</span>派单</button>
     <button class="call-btn" id="desk-btn"><i class="beacon"></i><span>待处理</span><span class="call-count" id="call-count">12</span></button>
   </div>
 </header>
@@ -420,7 +420,7 @@ table.data tr.top td.sc { color: var(--go); }
       <span style="display:inline-flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:50%;background:var(--done);display:inline-block"></i>完成</span>
     </span>
   </div>
-  <div class="sec-h"><h2>任务车道</h2><span class="sec-note">点 T-09 进它的无限 flow 图</span></div>
+  <div class="sec-h"><h2>任务列表</h2><span class="sec-note">点 T-09 进它的无限 flow 图</span></div>
 
   <article class="trow" id="row-t09" data-s="run" hidden tabindex="0" aria-label="T-09 AI 科普自媒体闭环，点入 flow 图">
     <div class="t-id"><i class="lamp on-run"></i><span class="plate">T-09</span></div>
@@ -601,11 +601,11 @@ table.data tr.top td.sc { color: var(--go); }
   </div>
 </section>
 
-<!-- ============ 浮层：方案召唤审批（幕2） ============ -->
+<!-- ============ 浮层：方案用人审批（幕2） ============ -->
 <div class="ovl" id="ov-plan" hidden>
-  <div class="ovcard wide" role="dialog" aria-label="调度方案与召唤审批">
+  <div class="ovcard wide" role="dialog" aria-label="调度方案与用人审批">
     <div class="ov-top">
-      <span class="summon-tag"><i class="lamp on-call" style="width:8px;height:8px"></i>召唤审批</span>
+      <span class="summon-tag"><i class="lamp on-call" style="width:8px;height:8px"></i>用人审批</span>
       <span>调度器排案 · 10:05</span>
       <span style="margin-left:auto;display:flex;gap:3px"><span class="mk">Sc</span><span class="mk">Ta</span><span class="mk">Qu</span><span class="mk">Le</span><span class="mk">He</span><span class="mk mk-me">我</span></span>
     </div>
@@ -631,7 +631,7 @@ table.data tr.top td.sc { color: var(--go); }
       <label class="jp-opt" style="margin:6px 0 0"><input type="radio" name="alt" value="b"><span><span class="ot">精简：只留首篇过目</span><span class="od">选题方向由 Scout 初选、Tally 复核后自动走 · 预计我的 5 分 / 周</span></span></label>
     </div>
     <div class="ov-acts">
-      <button class="btn go" id="plan-ok">批准召唤 · 开工</button>
+      <button class="btn go" id="plan-ok">批准开工 · 开工</button>
       <button class="btn" id="plan-edit">按改案重排</button>
       <button class="btn ghost" id="plan-no">拒绝</button>
     </div>
@@ -673,7 +673,7 @@ table.data tr.top td.sc { color: var(--go); }
     <div class="pull-list">
       <label class="jp-opt"><input type="radio" name="pull" value="wait"><span><span class="ot">等 Lens（45 分钟后接手）</span><span class="od">不换人 · 首发推迟约 1 小时</span></span></label>
       <label class="jp-opt"><input type="radio" name="pull" value="tool"><span><span class="ot">交给出图脚本（外部 API）</span><span class="od">模板化出图 · 快但风格固定 · ¥0.4 / 张</span></span></label>
-      <label class="jp-opt" style="margin-bottom:0"><input type="radio" name="pull" value="hire" checked><span><span class="ot">招一名新匠：Cutter · 视觉剪辑</span><span class="od">专职出图与剪辑 · 自治 L2 抽检 · 约 ¥0.8 / 张 · 入籍后全司可用</span></span></label>
+      <label class="jp-opt" style="margin-bottom:0"><input type="radio" name="pull" value="hire" checked><span><span class="ot">新增一名 Agent：Cutter · 视觉剪辑</span><span class="od">专职出图与剪辑 · 自治 L2 抽检 · 约 ¥0.8 / 张 · 入籍后全司可用</span></span></label>
     </div>
     <div class="ov-acts">
       <button class="btn go" id="pull-ok">确认换人</button>
@@ -719,15 +719,15 @@ table.data tr.top td.sc { color: var(--go); }
   </div>
 </div>
 
-<!-- ============ 召唤栏 ============ -->
+<!-- ============ 派单栏 ============ -->
 <div class="summon-zone">
-  <div class="think" id="think"><i class="lamp on-run"></i><span>调度器排案中 —— 拆步骤 · 查失败库 · 配匠人 · 锁判据……</span></div>
+  <div class="think" id="think"><i class="lamp on-run"></i><span>调度器排案中 —— 拆步骤 · 查失败库 · 配Agent · 锁判据……</span></div>
   <form class="summon" id="summon" autocomplete="off">
     <div class="toggle" role="group" aria-label="入口模式">
       <button type="button" data-mode="ask" aria-pressed="true">问</button>
       <button type="button" data-mode="write" aria-pressed="false">书</button>
     </div>
-    <input id="summon-in" placeholder="问点什么 —— 气泡应答，不落盘；派任务就用「书」" aria-label="召唤栏输入" />
+    <input id="summon-in" placeholder="问点什么 —— 气泡应答，不落盘；派任务就用「书」" aria-label="派单栏输入" />
     <span class="kbd" aria-hidden="true">⌘K</span>
     <button class="send" type="submit" aria-label="发出"><svg class="i"><use href="#i-send"/></svg></button>
   </form>
@@ -754,7 +754,7 @@ table.data tr.top td.sc { color: var(--go); }
   };
   $("#tab-home").addEventListener("click", () => setView("home"));
   $("#tab-flow").addEventListener("click", () => { if (act < 4) toast("T-09 还没开工——先在幕 ② 批了方案。"); else setView("flow"); });
-  $("#desk-btn").addEventListener("click", () => toast("工单桌在完整版里（见 index.html）——本演示聚焦 T-09 旅程。"));
+  $("#desk-btn").addEventListener("click", () => toast("待处理收件箱在完整版里（见 index.html）——本演示聚焦 T-09 旅程。"));
   $("#k-btn").addEventListener("click", () => $("#summon-in").focus());
 
   /* ---------- 画布平移缩放 ---------- */
@@ -781,9 +781,9 @@ table.data tr.top td.sc { color: var(--go); }
 
   const logs = {
     global: [
-      ["09:58", "Steward 巡检：T-09 尚未开工，等待召唤批准"],
+      ["09:58", "Steward 巡检：T-09 尚未开工，等待派单批准"],
       ["10:04", "我", "书 · 派出「AI 科普自媒体闭环」"],
-      ["10:05", "调度器排案完成，递召唤审批（六匠 · 找我 2 处）"],
+      ["10:05", "调度器排案完成，递用人审批（6 个 Agent · 找我 2 处）"],
     ],
     s1: [
       ["10:12", "Scout 扫「AI 科普」「AI 工具」双关键词"],
@@ -834,7 +834,7 @@ table.data tr.top td.sc { color: var(--go); }
           <div><dt>判据</dt><dd>30 天 ≥ 500 粉</dd></div><div><dt>预算</dt><dd>¥240 / 周</dd></div>
         </div>
         <div class="jp-h">运行时序日志 <small>全任务</small></div>
-        <ul class="logul">${logs.global.map((l) => `<li><time>${l[0]}</time>${l[1] === "我" ? '<span class="me">我</span> ' : ""}${l[1] === "请示" ? '<span class="ap">请示</span> ' : ""}${l[1] === "调度器排案完成，递召唤审批（六匠 · 找我 2 处）" ? l[1] : (l.length > 2 ? l[2] : l[1])}</li>`).join("")}</ul>`;
+        <ul class="logul">${logs.global.map((l) => `<li><time>${l[0]}</time>${l[1] === "我" ? '<span class="me">我</span> ' : ""}${l[1] === "请示" ? '<span class="ap">请示</span> ' : ""}${l[1] === "调度器排案完成，递用人审批（6 个 Agent · 找我 2 处）" ? l[1] : (l.length > 2 ? l[2] : l[1])}</li>`).join("")}</ul>`;
       return;
     }
     const p = panelNode[key];
@@ -962,7 +962,7 @@ table.data tr.top td.sc { color: var(--go); }
     if (n >= 7) {
       $("#s4-mk").textContent = "Cu"; $("#s4-mk").classList.add("mk-new");
       $("#s4-name").textContent = "配图 · Cutter 接手";
-      $("#s4-note").textContent = "新匠入列 · 出图中";
+      $("#s4-note").textContent = "新 Agent 入列 · 出图中";
       nodeS("n-s4", "done", { label: "完成", cls: "t-done" });
       nodeS("n-s5", "done", { label: "完成", cls: "t-done" }); edgeC("e-s4-s5", "e-done");
       edgeC("e-s5-s6", "e-run");
@@ -1008,7 +1008,7 @@ table.data tr.top td.sc { color: var(--go); }
   };
   const applyActNav = (n, keepFlow) => { act = n; actBtns.forEach((b, i) => { b.classList.toggle("cur", i + 1 === n); b.classList.toggle("done", i + 1 < n); }); };
 
-  /* 召唤栏 */
+  /* 派单栏 */
   const summon = $("#summon"), input = $("#summon-in");
   $$("[data-mode]").forEach((b) => b.addEventListener("click", () => {
     $$("[data-mode]").forEach((x) => x.setAttribute("aria-pressed", x === b));
@@ -1023,12 +1023,12 @@ table.data tr.top td.sc { color: var(--go); }
   });
 
   /* 方案审批 */
-  $("#plan-ok").addEventListener("click", () => { applyAct(3); toast("已批准召唤——T-09 入列开工。Scout 先扫赛道。"); });
+  $("#plan-ok").addEventListener("click", () => { applyAct(3); toast("已批准开工——T-09 入列开工。Scout 先扫赛道。"); });
   $("#plan-edit").addEventListener("click", () => {
     const v = $('input[name="alt"]:checked').value;
-    toast(v === "b" ? "按精简案重排：只留首篇过目，我的 5 分 / 周——演示走原案，点「批准召唤」继续。" : "原案即当前方案——点「批准召唤」开工。");
+    toast(v === "b" ? "按精简案重排：只留首篇过目，我的 5 分 / 周——演示走原案，点「批准开工」继续。" : "原案即当前方案——点「批准开工」开工。");
   });
-  $("#plan-no").addEventListener("click", () => toast("已拒绝。演示里任务书退回召唤栏——点「下一幕」继续走原旅程。"));
+  $("#plan-no").addEventListener("click", () => toast("已拒绝。演示里任务书退回派单栏——点「下一幕」继续走原旅程。"));
 
   /* T-09 行点击 */
   $("#row-t09").addEventListener("click", () => { if (act >= 4) setView("flow"); else toast("先走完幕 ②③——T-09 开工后才能进 flow。"); });
@@ -1051,9 +1051,9 @@ table.data tr.top td.sc { color: var(--go); }
   $("#pull-ok").addEventListener("click", () => {
     const v = $('input[name="pull"]:checked').value;
     closeOverlay("#ov-pull");
-    if (v === "wait") { toast("选择等待 Lens——演示走招匠线，继续点「下一幕」。"); return; }
+    if (v === "wait") { toast("选择等待 Lens——演示走招募线，继续点「下一幕」。"); return; }
     if (v === "tool") { $("#s4-mk").textContent = "具"; $("#s4-name").textContent = "配图 · 出图脚本"; $("#s4-note").textContent = "API 模板出图 · 风格固定"; }
-    else { $("#s4-mk").textContent = "Cu"; $("#s4-mk").classList.add("mk-new"); $("#s4-name").textContent = "配图 · Cutter 接手"; $("#s4-note").textContent = "新匠入列 · 出图中"; }
+    else { $("#s4-mk").textContent = "Cu"; $("#s4-mk").classList.add("mk-new"); $("#s4-name").textContent = "配图 · Cutter 接手"; $("#s4-note").textContent = "新 Agent 入列 · 出图中"; }
     nodeS("n-s4", "run", { label: "在跑", cls: "t-run" });
     spark(400, 524, 290, 520, () => {
       nodeS("n-s4", "done", { label: "完成", cls: "t-done" }); edgeC("e-s4-s5", "e-done");
