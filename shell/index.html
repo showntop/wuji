@@ -389,6 +389,83 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
 .drawer, .ledger { transition: transform .45s var(--ease); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; } }
 
+/* ---------- 任务详情 · 工作流视图 ---------- */
+#view-task { display: flex; flex-direction: column; height: calc(100vh - var(--top-h) - 42px); min-height: 480px; }
+.wf-head { display: flex; align-items: center; gap: 14px; padding: 10px 28px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.wf-head .plate { font-size: 18px; padding: 7px 10px 6px; }
+.wf-title { font-family: var(--f-cond); font-weight: 700; font-size: 24px; line-height: 1; }
+.wf-meta { display: flex; align-items: center; gap: 10px; font-family: var(--f-cond); font-size: 14px; color: var(--ink-2); }
+.wf-meta .prog { font-weight: 700; font-size: 19px; color: var(--ink); }
+.wf-acts { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.wfwrap { display: flex; flex: 1; min-height: 0; }
+.wfcanvas { position: relative; flex: 1; overflow: hidden; background: var(--floor); cursor: grab; }
+.wfcanvas.dragging { cursor: grabbing; }
+.wfcanvas::before { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(rgba(242, 239, 231, .07) 1px, transparent 1.5px); background-size: 26px 26px; }
+.wfboard { position: absolute; top: 0; left: 0; width: 1400px; height: 1800px; transform-origin: 0 0; will-change: transform; }
+.wfedges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.wfedges line { stroke: var(--line-2); stroke-width: 2; stroke-dasharray: 5 5; }
+.wfedges line.e-done { stroke: var(--done); stroke-dasharray: none; }
+.wfedges line.e-run { stroke: var(--go); stroke-dasharray: none; }
+.wfedges line.e-call { stroke: var(--call); stroke-dasharray: 4 4; animation: dashmove 1.2s linear infinite; }
+.wfedges line.e-stop { stroke: var(--stop); stroke-dasharray: none; }
+@keyframes dashmove { to { stroke-dashoffset: -8; } }
+.wfnode {
+  position: absolute; width: 220px; min-height: 62px;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  background: var(--floor-3); border: 1px solid var(--line); border-top: 2px solid var(--steel-2);
+  padding: 8px 12px; cursor: pointer;
+  transition: background .3s, border-color .3s, box-shadow .2s;
+  animation: risein .45s var(--ease) both; animation-delay: var(--d, 0ms);
+}
+.wfnode:hover { box-shadow: 0 0 0 1px var(--ink-3); }
+.wfnode.sel { box-shadow: 0 0 0 2px var(--plate); }
+.wfnode[data-s="done"] { border-top-color: var(--done); background: #23231f; }
+.wfnode[data-s="run"] { border-top-color: var(--go); background: #1e2a22; }
+.wfnode[data-s="call"] { border-top-color: var(--call); background: #2e2a17; }
+.wfnode[data-s="stop"] { border-top-color: var(--stop); background: #2e1c19; }
+.wfnode[data-s="hold"] { border-top-color: var(--hold); background: #1e2328; }
+.wfnode .lamp { width: 9px; height: 9px; }
+.wfnode[data-s="run"] .lamp { background: var(--go); box-shadow: 0 1px 6px rgba(58, 209, 111, .7); animation: breathe 1.8s ease-in-out infinite; }
+.wfnode[data-s="call"] .lamp { background: var(--call); box-shadow: 0 1px 6px rgba(255, 194, 26, .7); animation: blink 1s steps(1) infinite; }
+.wfnode[data-s="stop"] .lamp { background: var(--stop); box-shadow: 0 1px 6px rgba(255, 74, 53, .8); }
+.wfnode[data-s="done"] .lamp { background: var(--done); }
+.wfnode[data-s="hold"] .lamp { background: var(--hold); }
+.wfn-top { display: flex; align-items: center; gap: 8px; }
+.wfn-name { flex: 1; min-width: 0; font-family: var(--f-cond); font-weight: 600; font-size: 16px; line-height: 1.15; }
+.wfn-sub { display: flex; align-items: center; gap: 7px; font-family: var(--f-cond); font-size: 12.5px; color: var(--ink-25); }
+.wfn-sub .bar { width: 70px; height: 4px; background: var(--steel); position: relative; overflow: hidden; }
+.wfn-sub .bar i { position: absolute; inset: 0 auto 0 0; background: var(--go); }
+.wfart {
+  position: absolute; width: 200px; height: 42px;
+  display: flex; align-items: center; gap: 7px;
+  background: var(--floor-2); border: 1px solid var(--line-2); border-top: 2px solid var(--steel-2);
+  padding: 0 10px; cursor: pointer; transition: border-color .2s, box-shadow .2s;
+  animation: risein .45s var(--ease) both; animation-delay: var(--d, 0ms);
+}
+.wfart:hover { border-color: var(--ink-3); box-shadow: 0 0 0 1px var(--ink-3); }
+.wfart .kind { display: inline-grid; place-items: center; min-width: 19px; height: 17px; background: var(--steel-2); color: var(--ink); font-family: var(--f-cond); font-weight: 700; font-size: 12px; }
+.wfart .an { flex: 1; min-width: 0; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-2); }
+.wfcam { position: absolute; right: 14px; bottom: 14px; z-index: 6; display: flex; gap: 6px; align-items: center; background: var(--floor-2); border: 1px solid var(--line-2); padding: 4px; }
+.wfcam button { border: 0; background: transparent; font-family: var(--f-cond); font-weight: 600; font-size: 14px; color: var(--ink-2); padding: 3px 9px; }
+.wfcam button:hover { background: var(--steel); color: var(--ink); }
+.wfcam .zl { font-size: 12px; color: var(--ink-25); padding: 0 2px; }
+.wfhint { position: absolute; left: 14px; bottom: 14px; z-index: 6; font-family: var(--f-cond); font-size: 12.5px; letter-spacing: .05em; color: var(--ink-3); }
+.wfpanel { width: 350px; flex: none; border-left: 1px solid var(--line-2); background: var(--floor-2); display: flex; flex-direction: column; overflow: hidden; }
+.wfp-head { padding: 14px 18px 10px; border-bottom: 1px solid var(--line); }
+.wfp-title { font-family: var(--f-cond); font-weight: 700; font-size: 19px; line-height: 1.15; }
+.wfp-sub { margin: 4px 0 0; font-family: var(--f-cond); font-size: 12.5px; color: var(--ink-25); }
+.wfp-body { flex: 1; overflow-y: auto; padding: 12px 18px 20px; }
+.wfp-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.wfp-assign { display: flex; gap: 6px; align-items: center; }
+.wfp-assign select { background: #121210; border: 1px solid var(--line-2); border-radius: 0; padding: 5px 8px; font-size: 13px; color: var(--ink); }
+
+@media (max-width: 1100px) {
+  #view-task { height: auto; }
+  .wfwrap { flex-direction: column; }
+  .wfcanvas { height: 58vh; min-height: 360px; }
+  .wfpanel { width: auto; border-left: 0; border-top: 1px solid var(--line-2); max-height: 44vh; }
+}
+
 /* ---------- 响应式 ---------- */
 @media (max-width: 1280px) {
   .topbar { gap: 14px; padding: 0 20px; }
@@ -535,19 +612,39 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
   <div style="height: 140px"></div>
 </main>
 
-<!-- ================= 抽屉：任务详情 ================= -->
-<div class="scrim" id="scrim"></div>
-<aside class="drawer" id="task-drawer" aria-label="任务详情">
-  <div class="dw-head">
+<!-- ================= 任务详情（工作流整页） ================= -->
+<main id="view-task" hidden>
+  <div class="wf-head">
+    <button class="btn sm ghost" id="wf-back">← 返回列表</button>
+    <span class="plate" id="wf-plate">T-00</span>
     <div>
-      <div class="dw-title" id="td-title">任务</div>
-      <div class="dw-sub" id="td-sub"></div>
+      <div class="wf-title" id="wf-title">任务</div>
     </div>
-    <button class="dw-close" data-close="task" aria-label="关闭">×</button>
+    <div class="wf-meta" id="wf-meta"></div>
+    <div class="wf-acts" id="wf-acts"></div>
   </div>
-  <div class="dw-body" id="td-body"></div>
-</aside>
+  <div class="wfwrap">
+    <div class="wfcanvas" id="wfcanvas">
+      <div class="wfboard" id="wfboard">
+        <svg class="wfedges" id="wfedges" aria-hidden="true"></svg>
+        <div id="wfnodes"></div>
+      </div>
+      <div class="wfhint">拖拽平移 · 点节点看时序日志与操作</div>
+      <div class="wfcam">
+        <button id="wfz-out" aria-label="缩小">−</button><span class="zl" id="wfz-level">100%</span><button id="wfz-in" aria-label="放大">＋</button><button id="wfz-reset">复位</button>
+      </div>
+    </div>
+    <aside class="wfpanel" aria-label="节点详情与运行日志">
+      <div class="wfp-head">
+        <div class="wfp-title" id="wfp-title">运行时序</div>
+        <p class="wfp-sub" id="wfp-sub">点左侧任一节点查看它的执行内容与日志</p>
+      </div>
+      <div class="wfp-body" id="wfp-body"></div>
+    </aside>
+  </div>
+</main>
 
+<div class="scrim" id="scrim"></div>
 <!-- ================= 抽屉：Agent 详情 ================= -->
 <aside class="drawer" id="agent-drawer" aria-label="Agent 详情">
   <div class="dw-head">
@@ -631,14 +728,17 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
     { id: "T-09", name: "AI 科普自媒体闭环", s: "call", crew: ["scout", "tally", "quill", "me"], pct: 33, done: 2, total: 6,
       latest: ["11:54", "定选题方向轮到你 · 三选一"], arts: [["表", "赛道清单"], ["表", "选题打分"]],
       steps: [
-        ["扫赛道账号", "scout", "done", ""], ["选题打分", "tally", "done", ""],
+        ["扫赛道账号", "scout", "done", "", null, [["表", "赛道账号清单 · 38 行"]], [["10:12", "扫「AI 科普」双关键词"], ["10:18", "命中 38 个同类账号"], ["10:26", "清单产出，交打分"]]],
+        ["选题打分", "tally", "done", "", null, [["表", "选题打分表 · 12 行"]], [["10:31", "评分模型：热度×竞争度×契合度"], ["10:44", "12 行入表 · 首推 8.9 分"]]],
         ["定选题方向", "me", "call", "三选一"], ["写首篇脚本", "quill", "idle", ""],
         ["配图与封面", "lens", "idle", ""], ["多平台分发", "herald", "idle", ""]
       ],
       logs: [["10:12", "Scout 扫「AI 科普」双关键词"], ["10:18", "命中 38 个同类账号"], ["10:26", "《赛道账号清单》产出"], ["10:44", "Tally 打分完成 · 首推 8.9 分"], ["11:54", "请示", "三个候选方向待你定"]], flow: true },
     { id: "T-07", name: "东京五日行程规划", s: "run", crew: ["scout", "quill", "me"], pct: 40, done: 2, total: 5,
       latest: ["09:42", "Quill 写行程草案 · 60%"], arts: [["表", "机酒比价"]],
-      steps: [["检索机酒", "scout", "done", ""], ["景点打分", "tally", "done", ""], ["写行程草案", "quill", "run", "60%"], ["逐日排程", "me", "idle", ""], ["出行程表", "tool", "idle", ""]],
+      steps: [["检索机酒", "scout", "done", "", null, [["表", "机酒比价 · 6 方案"]], [["08:40", "检索 24 个候选"], ["09:05", "按 ¥8,000 预算筛出 6 方案"]]],
+        ["景点打分", "tally", "done", "", null, [["表", "景点分 · 18 选 9"]], [["09:10", "打分完成"]]],
+        ["写行程草案", "quill", "run", "60%", "60%", [], [["09:42", "写到第二节 · 60%"]]], ["逐日排程", "me", "idle", ""], ["出行程表", "tool", "idle", ""]],
       logs: [["08:40", "Scout 检索机酒 · 24 个候选"], ["09:10", "Tally 景点打分 · 18 选 9"], ["09:42", "Quill 写草案 · 60%"]] },
     { id: "T-04", name: "社群答疑草拟", s: "run", crew: ["quill"], pct: 33, done: 1, total: 3,
       latest: ["09:28", "已草拟 9 / 12 条回复"], arts: [["记", "答疑话术"]],
@@ -650,7 +750,10 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
       logs: [["08:30", "汇总 8 条任务周数据"], ["09:02", "Quill 初稿 2,400 字 · 自评 2 处存疑"], ["09:15", "请示", "等你审 · 已等 12 分钟"]] },
     { id: "T-06", name: "重构分享卡模板", s: "stop", crew: ["lens"], pct: 75, done: 3, total: 4,
       latest: ["08:14", "出图额度用尽，停线 2 小时 · 加购 ¥120 可恢复"], arts: [["图", "模板卡 ×3"]],
-      steps: [["拆解旧模板", "lens", "done", ""], ["定新规范", "me", "done", ""], ["试排 3 版", "lens", "done", ""], ["批量出图", "lens", "stop", "额度用尽"]],
+      steps: [["拆解旧模板", "lens", "done", "", null, [], [["07:40", "拆解 12 张旧卡"]]],
+        ["定新规范", "me", "done", "", null, [], [["08:00", "规范定稿"]]],
+        ["试排 3 版", "lens", "done", "", null, [["图", "模板卡 ×3"]], [["08:05", "3 版试排完成"]]],
+        ["批量出图", "lens", "stop", "额度用尽", null, [], [["08:14", "报错", "额度用尽 · 停线 2 小时"]]]],
       logs: [["07:40", "拆解旧模板 · 12 张"], ["08:05", "试排 3 版完成"], ["08:14", "报错", "出图额度用尽 · 停线"]] },
     { id: "T-03", name: "竞品调研：Flowith", s: "run", crew: ["scout", "tally"], pct: 67, done: 4, total: 6,
       latest: ["09:36", "Tally 归因其增长来源"], arts: [["稿", "调研笔记"], ["表", "功能对比"]],
@@ -726,7 +829,7 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
   let view = "home";
   function setView(v) {
     view = v;
-    ["home", "tasks", "agents"].forEach((x) => { $("#view-" + x).hidden = x !== v; });
+    ["home", "tasks", "agents", "task"].forEach((x) => { $("#view-" + x).hidden = x !== v; });
     $$(".navtabs button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.view === v));
     window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
@@ -779,9 +882,8 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
       r.dataset.bound = "1";
       const open = () => {
         const id = r.dataset.task;
-        if (id === "T-09") { location.href = "journey.html"; return; }
         const t = TASKS.find((x) => x.id === id);
-        if (t) openTaskDrawer(t);
+        if (t) openTaskView(t);
       };
       r.addEventListener("click", (e) => { if (!e.target.closest(".art")) open(); });
       r.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && !e.target.closest(".art")) { e.preventDefault(); open(); } });
@@ -793,41 +895,165 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
     });
   }
 
-  /* ================= 任务详情抽屉 ================= */
-  function openTaskDrawer(t) {
-    $("#td-title").textContent = `${t.id} · ${t.name}`;
-    $("#td-sub").innerHTML = `${tagHtml(t.s)} · 执行 ${t.crew.map((c) => ROSTER[c].name).join("、") || "已归档"}`;
-    $("#td-body").innerHTML = `
-      <div class="dw-sec"><dl class="kv">
-        <div><dt>状态</dt><dd>${tagHtml(t.s)}</dd></div>
-        <div><dt>进度</dt><dd>${t.done} / ${t.total} 步 · ${t.pct}%</dd></div>
-        <div><dt>产物</dt><dd>${t.arts.length ? t.arts.map((a) => a[1]).join("、") : "—"}</dd></div>
-        <div><dt>最新动态</dt><dd style="font-size:13px;font-weight:500">${esc(t.latest[1])}</dd></div>
-      </dl></div>
-      <div class="dw-sec"><div class="dw-h">步骤 <small>${t.done}/${t.total} 完成</small></div>
-        ${t.steps.map((s) => `<div class="step" data-s="${s[2]}"><i class="lamp"></i><span class="sn">${esc(s[0])}${s[3] ? ` · <span style="color:var(--ink-3)">${esc(s[3])}</span>` : ""}</span><span class="sx"><span class="mk${s[1] === "me" ? " me" : ""}">${ROSTER[s[1]] ? ROSTER[s[1]].mk : "具"}</span>${STATUS[s[2]] ? STATUS[s[2]][0] : "未开始"}</span></div>`).join("")}
-      </div>
-      <div class="dw-sec"><div class="dw-h">运行日志 <small>本任务</small></div>
-        <ul class="log">${t.logs.map((l) => `<li><time>${l[0]}</time>${l[1] === "请示" || l[1] === "报错" ? `<span class="${l[1] === "请示" ? "ap" : "err"}">${l[1]}</span> ` : ""}${l.at(-1)}</li>`).join("")}</ul>
-      </div>
-      <div class="dw-sec"><div class="dw-h">操作</div>
-        <div class="dw-acts">
-          ${t.s === "run" || t.s === "call" ? `<button class="btn sm" data-ops="pause">暂停</button>` : ""}
-          ${t.s === "stop" ? `<button class="btn sm go" data-ops="resume">恢复运行</button>` : ""}
-          <button class="btn sm" data-ops="rerun">从当前步重跑</button>
-          ${t.flow ? `<button class="btn sm go" data-ops="flow">打开画布操盘</button>` : ""}
-        </div>
-      </div>`;
-    $$("#td-body [data-ops]").forEach((b) => b.addEventListener("click", () => {
-      const op = b.dataset.ops;
-      if (op === "flow") { location.href = "journey.html"; return; }
-      if (op === "pause") { t.s = "hold"; toast(`${t.id} 已暂停——在跑步骤挂起，随时恢复。`); }
-      if (op === "resume") { t.s = "run"; const sn = t.steps.find((s) => s[2] === "stop"); if (sn) sn[2] = "run"; toast(`${t.id} 恢复运行。`); }
-      if (op === "rerun") toast(`从当前步重跑——上游结果冻结，重跑产出新草案分支（完整版）。`);
-      renderTaskLists(); renderFilters(); renderHome(); openTaskDrawer(t);
-    }));
-    openDrawer("task");
+  /* ================= 任务详情 · 工作流视图 ================= */
+  let curTask = null, wfSel = -1;
+  const wfCam = { x: 40, y: 20, z: 1 };
+  function wfApply() {
+    $("#wfboard").style.transform = `translate(${wfCam.x}px, ${wfCam.y}px) scale(${wfCam.z})`;
+    $("#wfz-level").textContent = Math.round(wfCam.z * 100) + "%";
   }
+  const EDGE = { done: "e-done", run: "e-run", call: "e-call", stop: "e-stop" };
+  function openTaskView(t) {
+    curTask = t; wfSel = -1;
+    setView("task");
+    $("#wf-plate").textContent = t.id;
+    $("#wf-title").textContent = t.name;
+    $("#wf-meta").innerHTML = `${tagHtml(t.s)}<span class="prog">${t.pct}%</span><span>${t.done} / ${t.total} 步</span><span>·</span><span>执行 ${t.crew.map((c) => ROSTER[c].name).join("、") || "—"}</span>`;
+    $("#wf-acts").innerHTML = `
+      ${t.s === "run" || t.s === "call" ? `<button class="btn sm" data-wf="pause">暂停任务</button>` : ""}
+      ${t.s === "hold" ? `<button class="btn sm go" data-wf="unpause">恢复任务</button>` : ""}
+      ${t.s === "stop" ? `<button class="btn sm go" data-wf="resume">解除阻塞</button>` : ""}
+      ${t.flow ? `<button class="btn sm" data-wf="journey">无限画布操盘</button>` : ""}`;
+    $$("#wf-acts [data-wf]").forEach((b) => b.addEventListener("click", () => {
+      const op = b.dataset.wf;
+      if (op === "journey") { location.href = "journey.html"; return; }
+      if (op === "pause") { t.s = "hold"; toast(`${t.id} 已暂停——在跑步骤挂起。`); }
+      if (op === "unpause") { t.s = "run"; toast(`${t.id} 恢复运行。`); }
+      if (op === "resume") { const sn = t.steps.find((s) => s[2] === "stop"); if (sn) sn[2] = "run"; t.s = "run"; t.latest = [t.latest[0], "阻塞已解除，恢复运行"]; toast(`${t.id} 解除阻塞。`); }
+      renderTaskLists(); renderFilters(); renderHome();
+      openTaskView(t);
+    }));
+    wfCam.x = 46; wfCam.y = 14; wfCam.z = Math.min(1, 0.62 + 0.38 * (6 / Math.max(6, t.steps.length)));
+    renderWorkflow();
+    renderWfPanel();
+  }
+  function renderWorkflow() {
+    const t = curTask;
+    $("#wf-meta").innerHTML = `${tagHtml(t.s)}<span class="prog">${t.pct}%</span><span>${t.done} / ${t.total} 步</span><span>·</span><span>执行 ${t.crew.map((c) => ROSTER[c].name).join("、") || "—"}</span>`;
+    const nodesWrap = $("#wfnodes"), edges = $("#wfedges");
+    const STEP_H = 108, X = 90, AX = 372;
+    let html = "", ehtml = "";
+    const arts = [];
+    t.steps.forEach((s, i) => {
+      const y = 50 + i * STEP_H;
+      const st = s[2];
+      const note = s[3] || STATUS[st][0];
+      const prog = st === "run" ? (s[4] || "50%") : st === "done" ? "100%" : "0%";
+      html += `<div class="wfnode" data-i="${i}" data-s="${st}" style="left:${X}px; top:${y}px; --d:${i * 55}ms" tabindex="0" role="button" aria-label="${esc(s[0])}">
+        <div class="wfn-top"><i class="lamp"></i><span class="wfn-name">${esc(s[0])}</span></div>
+        <div class="wfn-sub"><span class="mk${s[1] === "me" ? " me" : ""}">${ROSTER[s[1]] ? ROSTER[s[1]].mk : "具"}</span><span>${note}</span>${st === "run" || st === "done" ? `<span class="bar"><i style="width:${prog}"></i></span><span>${prog}</span>` : ""}</div>
+      </div>`;
+      if (i > 0) {
+        const cls = st === "idle" ? "" : (EDGE[st] || "");
+        ehtml += `<line x1="${X + 60}" y1="${y - STEP_H + 64}" x2="${X + 60}" y2="${y}" class="${cls}" />`;
+      }
+      (s[5] || []).forEach(([k, n], ai) => {
+        const ay = y + 6 + ai * 0;
+        html += `<div class="wfart" data-i="${i}" style="left:${AX}px; top:${y}px; --d:${i * 55 + 90}ms" tabindex="0" role="button" aria-label="产物 ${esc(n)}"><span class="kind">${k}</span><span class="an">${esc(n)}</span></div>`;
+        ehtml += `<line x1="${X + 222}" y1="${y + 20}" x2="${AX}" y2="${y + 20}" class="${st === "done" ? "e-done" : ""}" />`;
+      });
+    });
+    nodesWrap.innerHTML = html;
+    edges.innerHTML = ehtml;
+    wfApply();
+    $$("#wfnodes .wfnode").forEach((n) => {
+      const open = () => { wfSel = +n.dataset.i; $$("#wfnodes .wfnode").forEach((x) => x.classList.remove("sel")); n.classList.add("sel"); renderWfPanel(); };
+      n.addEventListener("click", open);
+      n.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    });
+    $$("#wfnodes .wfart").forEach((a) => {
+      a.addEventListener("click", () => toast(`打开「${a.querySelector(".an").textContent}」查看器（完整版内接形态编辑器）。`));
+    });
+  }
+  function stepLogs(t, i) {
+    const s = t.steps[i];
+    if (s[6]) return s[6];
+    const up = t.steps[i - 1];
+    return [
+      [t.latest[0] === "刚刚" ? "—" : "—", up ? `等待上游「${up[0]}」交付` : "任务起点"],
+      [t.latest[0] === "刚刚" ? "—" : "—", `${ROSTER[s[1]] ? ROSTER[s[1]].name : "脚本"} 接手 · ${STATUS[st(s)] ? STATUS[st(s)][0] : "未开始"}`]
+    ];
+    function st(x) { return x[2]; }
+  }
+  function renderWfPanel() {
+    const t = curTask;
+    const body = $("#wfp-body");
+    if (wfSel < 0) {
+      $("#wfp-title").textContent = "运行时序";
+      $("#wfp-sub").textContent = "点左侧任一节点查看它的执行内容与日志";
+      body.innerHTML = `
+        <div class="dw-sec"><div class="dw-h">任务日志 <small>全局</small></div>
+          <ul class="log">${t.logs.map((l) => `<li><time>${l[0]}</time>${l[1] === "请示" || l[1] === "报错" ? `<span class="${l[1] === "请示" ? "ap" : "err"}">${l[1]}</span> ` : ""}${l.at(-1)}</li>`).join("")}</ul>
+        </div>
+        <div class="dw-sec"><div class="dw-h">产物 <small>${t.arts.length}</small></div>
+          ${t.arts.map(([k, n]) => `<div class="task-chip"><b>${k}</b>${esc(n)}</div>`).join("") || '<p class="note">还没有产物——步骤完成后产出会挂到对应节点上。</p>'}
+        </div>`;
+      return;
+    }
+    const s = t.steps[wfSel];
+    const a = ROSTER[s[1]];
+    $("#wfp-title").textContent = `步骤 ${wfSel + 1} · ${s[0]}`;
+    $("#wfp-sub").textContent = `${a ? a.name : "脚本"} · ${STATUS[s[2]] ? STATUS[s[2]][0] : "未开始"}${s[3] ? " · " + s[3] : ""}`;
+    const executors = Object.keys(ROSTER).filter((id) => !["flowsmith", "steward"].includes(id));
+    body.innerHTML = `
+      <div class="dw-sec"><dl class="kv">
+        <div><dt>谁在执行</dt><dd><span class="mk${s[1] === "me" ? " me" : ""}">${a ? a.mk : "具"}</span>${a ? a.name : "脚本"}</dd></div>
+        <div><dt>状态</dt><dd>${tagHtml(s[2])}</dd></div>
+        <div><dt>说明</dt><dd style="font-size:13px;font-weight:500">${esc(s[3] || "—")}</dd></div>
+        <div><dt>重跑</dt><dd>可 · 上游冻结</dd></div>
+      </dl></div>
+      <div class="dw-sec"><div class="dw-h">操作</div>
+        <div class="wfp-acts">
+          ${s[2] === "run" ? `<button class="btn sm" data-sops="pause">暂停此步</button>` : ""}
+          ${s[2] === "hold" || s[2] === "idle" ? `<button class="btn sm go" data-sops="run">启动此步</button>` : ""}
+          ${s[2] === "call" ? `<button class="btn sm go" data-sops="done">我处理完了</button>` : ""}
+          ${s[2] === "stop" ? `<button class="btn sm go" data-sops="resume">解除阻塞</button>` : ""}
+          <button class="btn sm" data-sops="rerun">重跑此步</button>
+        </div>
+        ${s[1] !== "me" ? `<div class="wfp-assign"><select id="wf-assign">${executors.map((id) => `<option value="${id}">${ROSTER[id].name} · ${ROSTER[id].role} · L${ROSTER[id].trust ?? "—"}</option>`).join("")}</select><button class="btn sm" data-sops="reassign">改派</button></div>` : `<p class="note">这一步由我亲自执行——如需交出去，用上面的改派。</p>`}
+      </div>
+      <div class="dw-sec"><div class="dw-h">运行时序日志 <small>本步骤</small></div>
+        <ul class="log">${stepLogs(t, wfSel).map((l) => `<li><time>${l[0]}</time>${l[1] === "请示" ? '<span class="ap">请示</span> ' : ""}${l.at(-1)}</li>`).join("")}</ul>
+      </div>`;
+    $$("#wfp-body [data-sops]").forEach((b) => b.addEventListener("click", () => {
+      const op = b.dataset.sops;
+      if (op === "pause") s[2] = "hold";
+      if (op === "run") { s[2] = "run"; t.s = t.s === "done" ? t.s : "run"; }
+      if (op === "done") { s[2] = "done"; const n = t.steps[wfSel + 1]; if (n && n[2] === "idle") n[2] = "run"; t.done = t.steps.filter((x) => x[2] === "done").length; t.pct = Math.round((t.done / t.total) * 100); }
+      if (op === "resume") { s[2] = "run"; if (t.s === "stop") t.s = "run"; }
+      if (op === "rerun") { for (let k = wfSel; k < t.steps.length; k++) if (t.steps[k][2] !== "done" || k === wfSel) t.steps[k][2] = k === wfSel ? "run" : "idle"; toast(`从「${s[0]}」重跑——上游结果冻结。`); }
+      if (op === "reassign") {
+        const to = $("#wf-assign").value;
+        const from = ROSTER[s[1]] ? ROSTER[s[1]].name : "脚本";
+        s[1] = to;
+        toast(`「${s[0]}」改派给 ${ROSTER[to].name}（自治 L${ROSTER[to].trust ?? "—"}）。连续出错会自动交还给我。`);
+      }
+      if (!t.crew.includes(s[1])) t.crew.push(s[1]);
+      renderTaskLists(); renderFilters(); renderHome();
+      renderWorkflow(); renderWfPanel();
+    }));
+  }
+
+  /* 画布平移缩放 */
+  const wfCanvas = $("#wfcanvas");
+  let wfDrag = null;
+  wfCanvas.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".wfnode, .wfart, .wfcam")) return;
+    wfDrag = { x0: e.clientX, y0: e.clientY, cx: wfCam.x, cy: wfCam.y };
+    wfCanvas.classList.add("dragging");
+    wfCanvas.setPointerCapture(e.pointerId);
+  });
+  wfCanvas.addEventListener("pointermove", (e) => {
+    if (!wfDrag) return;
+    wfCam.x = wfDrag.cx + e.clientX - wfDrag.x0;
+    wfCam.y = wfDrag.cy + e.clientY - wfDrag.y0;
+    wfApply();
+  });
+  wfCanvas.addEventListener("pointerup", () => { wfDrag = null; wfCanvas.classList.remove("dragging"); });
+  $("#wfz-in").addEventListener("click", () => { wfCam.z = Math.min(1.4, wfCam.z + 0.15); wfApply(); });
+  $("#wfz-out").addEventListener("click", () => { wfCam.z = Math.max(0.5, wfCam.z - 0.15); wfApply(); });
+  $("#wfz-reset").addEventListener("click", () => { if (curTask) openTaskView(curTask); });
+  $("#wf-back").addEventListener("click", () => setView("tasks"));
 
   /* ================= Agent 概览 / 列表 ================= */
   function renderAgents() {
@@ -967,7 +1193,7 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
     if (fx === "read") return true;
     if (fx === "noop") { toast("完整版里这里打开产物查看器与任务画布。"); return false; }
     if (fx === "delegate") { toast("已设为默认交 Quill：以后同类确认它先草拟，只递结果。"); return true; }
-    if (fx.startsWith("task:")) { const t = rowOf(fx.slice(5)); if (t) { closeDesk(); openTaskDrawer(t); } return false; }
+    if (fx.startsWith("task:")) { const t = rowOf(fx.slice(5)); if (t) { closeAll(); openTaskView(t); } return false; }
     const [op, lineId, idx] = fx.split(":");
     const t = rowOf(lineId);
     if (!t) return true;
@@ -1044,7 +1270,7 @@ main > .sec-h:first-child, #view-tasks .sec-h:first-child, #view-agents .sec-h:f
   const scrim = $("#scrim");
   function openDrawer(name) {
     $$(".drawer, .ledger").forEach((d) => d.classList.remove("on"));
-    ({ task: "#task-drawer", agent: "#agent-drawer", desk: "#desk", ledger: "#ledger" })[name] && $(({ task: "#task-drawer", agent: "#agent-drawer", desk: "#desk", ledger: "#ledger" })[name]).classList.add("on");
+    ({ agent: "#agent-drawer", desk: "#desk", ledger: "#ledger" })[name] && $(({ agent: "#agent-drawer", desk: "#desk", ledger: "#ledger" })[name]).classList.add("on");
     scrim.classList.add("on");
   }
   function closeAll() { $$(".drawer, .ledger").forEach((d) => d.classList.remove("on")); scrim.classList.remove("on"); }
