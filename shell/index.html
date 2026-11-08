@@ -362,6 +362,33 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
 .btn.warn:hover { background: rgba(255, 74, 53, .12); }
 .ad-empty { font-family: var(--f-cond); font-size: 13.5px; color: var(--ink-3); }
 
+/* -------- 工单桌 -------- */
+.desk { width: min(480px, 100vw); }
+.desk-body { flex: 1; overflow-y: auto; padding: 10px 22px 30px; }
+.desk-sub { margin: 3px 0 0; font-family: var(--f-cond); font-size: 13px; color: #9d9a92; letter-spacing: .03em; }
+.desk-sub .mk { margin-right: 3px; vertical-align: -2px; }
+.group-h { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 10px; font-family: var(--f-cond); font-weight: 700; font-size: 15px; letter-spacing: .06em; }
+.group-h:first-child { margin-top: 6px; }
+.group-h small { font-weight: 500; color: var(--ink-3); letter-spacing: .02em; margin-left: 8px; font-size: 13px; }
+.ticket {
+  background: var(--floor-3); padding: 13px 14px 12px; margin-bottom: 8px;
+  border-top: 2px solid var(--steel-2);
+  transition: opacity .3s, transform .35s var(--ease);
+}
+.ticket[data-t="决策"] { border-top-color: var(--plate); }
+.ticket[data-t="确认"] { border-top-color: var(--call); }
+.ticket[data-t="知情"] { border-top-color: var(--done); }
+.ticket.gone { opacity: 0; transform: translateX(40px); }
+.tk-top { display: flex; align-items: center; gap: 8px; font-family: var(--f-cond); font-size: 13px; color: #9d9a92; letter-spacing: .03em; }
+.tk-top .mins { margin-left: auto; }
+.ticket h4 { margin: 9px 0 4px; font-size: 15px; font-weight: 600; line-height: 1.35; }
+.ticket p { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+.ticket .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.desk-empty { padding: 70px 0; text-align: center; color: var(--ink-3); }
+.desk-empty .big { font-family: var(--f-cond); font-weight: 700; font-size: 26px; color: var(--go); display: block; margin-bottom: 6px; }
+.call-btn.clear { background: var(--steel); color: var(--ink-2); box-shadow: none; }
+.call-btn.clear .beacon { background: var(--go); animation: none; }
+
 /* -------- summon -------- */
 .summon-zone {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
@@ -846,6 +873,16 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
 </div>
 
 <div class="scrim" id="scrim"></div>
+<aside class="adrawer desk" id="desk" aria-label="工单桌">
+  <div class="ad-head">
+    <div>
+      <div class="ad-title">工单桌</div>
+      <p class="desk-sub" id="desk-sub"></p>
+    </div>
+    <button class="ad-close" id="desk-close" aria-label="关闭">×</button>
+  </div>
+  <div class="desk-body" id="desk-body"></div>
+</aside>
 <aside class="adrawer" id="adrawer" aria-label="匠人管理">
   <div class="ad-head">
     <span class="mk" id="ad-mk">Qu</span>
@@ -872,34 +909,9 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
     t = setTimeout(() => toastEl.classList.remove("on"), 3600);
   };
 
-  /* 台签 / 工单桌：视觉稿只含任务台一屏 */
-  document.querySelectorAll(".toggle[aria-label='台签'] button, #desk-btn").forEach((b) => {
-    b.addEventListener("click", () => toast("视觉稿只建了任务台一屏——各台与工单桌在下一屏。"));
-  });
-
-  /* 审批卡 */
-  document.querySelectorAll(".apcard-acts .btn").forEach((b) => {
-    b.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toast(b.classList.contains("go") ? "已批准召唤——匠人入列，任务开工（下一屏演示）。" : b.classList.contains("ghost") ? "已拒绝，方案退回。可改案再递。" : "改案：告诉调度器哪里不对，它重排方案再递。");
-    });
-  });
-
-  /* 任务行 → flow 图；产物片 → 形态开器（键盘 Enter/Space 同 click） */
-  document.querySelectorAll(".trow").forEach((r) => {
-    const open = () => toast(`进入 ${r.querySelector(".plate").textContent} 的无限 flow 图——可暂停、重跑、分叉、加工位（下一屏）。`);
-    r.addEventListener("click", open);
-    r.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
-    });
-  });
-  document.querySelectorAll(".art").forEach((a) => {
-    a.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const kind = a.querySelector(".kind").textContent;
-      const viewer = { "表": "表格编辑器", "稿": "文档阅读器", "图": "看图器", "记": "笔记编辑器", "码": "代码 diff 视图" }[kind] || "查看器";
-      toast(`打开${viewer}——形态即入口（下一屏）。`);
-    });
+  /* 台签：视觉稿只含任务台一屏 */
+  document.querySelectorAll(".toggle[aria-label='台签'] button").forEach((b) => {
+    if (!b.getAttribute("aria-pressed")) b.addEventListener("click", () => toast("视觉稿只建了任务台一屏——各台在下一屏。"));
   });
 
   /* 匠籍数据与管理抽屉 */
@@ -997,6 +1009,133 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
   scrim.addEventListener("click", closeDrawer);
   function closeDrawer() { adrawer.classList.remove("on"); scrim.classList.remove("on"); }
 
+
+  /* ---------- 工单桌 ---------- */
+  const desk = $("#desk");
+  const CALLS = [
+    { id: "d1", t: "决策", from: "quill", line: "T-05", title: "《周报 v3》终稿待你审", ctx: "Quill 自评第三节数据口径存疑，已标注 2 处。对外文字 L1 必审。已等 12 分钟。", mins: 18, acts: [{ l: "审毕 · 排版发布", fx: "advance:T-05:2", k: "go" }, { l: "打开任务", fx: "noop" }] },
+    { id: "d2", t: "决策", from: "steward", line: "T-06", title: "出图额度用尽 · 加购 ¥120 恢复", ctx: "Lens 停线 2 小时。加购即恢复；或保持停线等 Lens 空闲（约 45 分钟）。", mins: 1, acts: [{ l: "加购并恢复", fx: "resume:T-06", k: "go" }, { l: "保持停线", fx: "read" }] },
+    { id: "d3", t: "决策", from: "flowsmith", line: "召唤", title: "2 张召唤方案待批", ctx: "秋日海报（Qu+Le · ¥180）与竞品月报（Sc · ¥20）。是否召唤由你定。", mins: 6, acts: [{ l: "去审批区", fx: "goto:apcards", k: "go" }] },
+    { id: "c1", t: "确认", from: "quill", line: "T-04", title: "12 条答疑草拟完成", ctx: "9 条草稿可直发，3 条涉付费咨询建议你亲自答。", mins: 25, acts: [{ l: "发出草稿并补答 3 条", fx: "advance:T-04:1", k: "go" }, { l: "以后交给 Quill", fx: "delegate" }] },
+    { id: "c2", t: "确认", from: "scout", line: "T-07", title: "机酒比价表就绪 · 待确认进排程", ctx: "按预算 ¥8,000 筛出 6 个方案，涩谷/新宿各 3。确认后 Quill 出行程表。", mins: 10, acts: [{ l: "确认 · 进排程", fx: "advance:T-07:1", k: "go" }, { l: "先看看表格", fx: "noop" }] },
+    { id: "k1", t: "知情", from: "tally", line: "T-09", title: "选题打分完成：12 行入表", ctx: "首推「会用 AI 的同行」8.9 分，对标账号 3 个已验证。", mins: 0, acts: [{ l: "已读", fx: "read" }] },
+    { id: "k2", t: "知情", from: "herald", line: "T-02", title: "周报 44 期已推送", ctx: "触达 1,860 · 打开率 41%（+3pt）。明日 08:00 自动复跑。", mins: 0, acts: [{ l: "已读", fx: "read" }] },
+    { id: "k3", t: "知情", from: "tally", line: "编制", title: "本周判断命中 9 / 13", ctx: "两笔决策到回看日：T-03 涨粉预测、T-07 预算执行。", mins: 0, acts: [{ l: "已读", fx: "read" }] }
+  ];
+  const rowOf = (id) => [...document.querySelectorAll(".trow")].find((r) => r.querySelector(".plate").textContent === id);
+  const DESK_FX = {
+    read: (c) => true,
+    noop: () => { toast("产物查看器与任务详情在完整版中接 journey.html 的 flow 图。"); return false; },
+    delegate: () => { toast("已设为默认交 Quill：以后同类确认它先草拟，只递结果。"); return true; },
+    "goto:apcards": () => { closeDesk(); document.querySelector(".apcards").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" }); return false; },
+  };
+  function runFx(c, fx) {
+    if (DESK_FX[fx]) return DESK_FX[fx](c);
+    const [op, lineId, idx] = fx.split(":");
+    const row = rowOf(lineId);
+    if (!row) return true;
+    const nodes = [...row.querySelectorAll(".fnode")];
+    if (op === "advance" && nodes[idx]) {
+      nodes[idx].dataset.s = "done"; nodes[idx].querySelector(".lamp").className = "lamp";
+      if (nodes[idx + 1]) { nodes[idx + 1].dataset.s = "run"; nodes[idx + 1].querySelector(".lamp").className = "lamp on-run"; }
+      const done = nodes.filter((n) => n.dataset.s === "done").length;
+      row.querySelector(".t-prog").innerHTML = `<span class="pct">${Math.round((done / nodes.length) * 100)}%</span><span class="nm">${done} / ${nodes.length} 步</span>`;
+    }
+    if (op === "resume" && nodes[idx] === undefined) {
+      const stopNode = nodes.find((n) => n.dataset.s === "stop");
+      if (stopNode) { stopNode.dataset.s = "run"; stopNode.querySelector(".lamp").className = "lamp on-run"; }
+      row.dataset.s = "run"; row.querySelector(".t-id .lamp").className = "lamp on-run";
+      const tag = row.querySelector(".t-main .tag-s"); if (tag) { tag.textContent = "在跑"; tag.className = "tag-s t-run"; }
+    }
+    return true;
+  }
+  function renderDesk() {
+    const mins = CALLS.reduce((a, c) => a + c.mins, 0);
+    const froms = [...new Set(CALLS.map((c) => c.from))];
+    $("#desk-sub").innerHTML = CALLS.length
+      ? `${CALLS.length} 件待处理 · 来自 ${froms.map((f) => { const a = ROSTER[f]; return `<span class="mk">${a ? a.mk : f}</span>`; }).join("")} · 预计 ${mins} 分钟`
+      : "没有待处理";
+    const body = $("#desk-body");
+    if (!CALLS.length) { body.innerHTML = `<div class="desk-empty"><span class="big">工单桌已清空</span>没有任何匠人需要你。关掉，去做别的事。</div>`; syncCallBtn(); return; }
+    const groups = [["决策", "只有你能定"], ["确认", "过目即可，可批量"], ["知情", "看一眼就行"]];
+    body.innerHTML = groups.map(([t, sub]) => {
+      const cs = CALLS.filter((c) => c.t === t);
+      if (!cs.length) return "";
+      const batch = t === "知情" && cs.length > 1 ? `<button class="btn sm ghost" data-batch="read">全部已读</button>`
+        : t === "确认" && cs.length > 1 ? `<button class="btn sm ghost" data-batch="confirm">按首选全部处理</button>` : "";
+      return `<div class="group-h"><span>${t}<small>${sub} · ${cs.length}</small></span>${batch}</div>` +
+        cs.map((c) => {
+          const a = ROSTER[c.from];
+          return `<article class="ticket" data-t="${c.t}" data-id="${c.id}">
+            <div class="tk-top"><span style="display:inline-flex;align-items:center;gap:6px"><span class="mk${a && a.me ? " mk-me" : ""}">${a ? a.mk : c.from}</span>${a ? a.name : c.from} 提交</span><span class="plate sm">${c.line}</span><span class="mins">${c.mins ? `约 ${c.mins} 分` : "不占时间"}</span></div>
+            <h4>${esc(c.title)}</h4>
+            <p>${esc(c.ctx)}</p>
+            <div class="acts">${c.acts.map((x) => `<button class="btn sm ${x.k || ""}" data-fx="${x.fx}" data-call="${c.id}">${esc(x.l)}</button>`).join("")}</div>
+          </article>`;
+        }).join("");
+    }).join("");
+    syncCallBtn();
+  }
+  function dropCall(id) { const i = CALLS.findIndex((c) => c.id === id); if (i >= 0) CALLS.splice(i, 1); }
+  function syncCallBtn() {
+    const btn = $("#desk-btn");
+    const cc = btn.querySelector(".call-count");
+    cc.textContent = CALLS.length;
+    btn.classList.toggle("clear", CALLS.length === 0);
+  }
+  function openDesk() { renderDesk(); desk.classList.add("on"); scrim.classList.add("on"); $("#desk-close").focus(); }
+  function closeDesk() { desk.classList.remove("on"); scrim.classList.remove("on"); }
+  $("#desk-btn").addEventListener("click", openDesk);
+  $("#desk-close").addEventListener("click", closeDesk);
+  scrim.addEventListener("click", () => { if (desk.classList.contains("on")) closeDesk(); });
+  $("#desk-body").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-fx]");
+    if (b) {
+      const c = CALLS.find((x) => x.id === b.dataset.call);
+      if (!c) return;
+      const done = runFx(c, b.dataset.fx);
+      if (done) {
+        dropCall(c.id);
+        const el = b.closest(".ticket");
+        if (el && !reduce) { el.classList.add("gone"); setTimeout(renderDesk, 320); } else renderDesk();
+      }
+      return;
+    }
+    const batch = e.target.closest("[data-batch]");
+    if (batch) {
+      const type = batch.dataset.batch === "read" ? "知情" : "确认";
+      const cs = CALLS.filter((c) => c.t === type);
+      cs.forEach((c) => { runFx(c, c.acts[0].fx); dropCall(c.id); });
+      toast(type === "知情" ? `已读 ${cs.length} 条` : `已按首选处理 ${cs.length} 件确认`);
+      renderDesk();
+    }
+  });
+
+  /* 审批卡 */
+  document.querySelectorAll(".apcard-acts .btn").forEach((b) => {
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toast(b.classList.contains("go") ? "已批准召唤——匠人入列，任务开工（下一屏演示）。" : b.classList.contains("ghost") ? "已拒绝，方案退回。可改案再递。" : "改案：告诉调度器哪里不对，它重排方案再递。");
+    });
+  });
+
+  /* 任务行 → flow 图；产物片 → 形态开器（键盘 Enter/Space 同 click） */
+  document.querySelectorAll(".trow").forEach((r) => {
+    const open = () => toast(`进入 ${r.querySelector(".plate").textContent} 的无限 flow 图——可暂停、重跑、分叉、加工位（下一屏）。`);
+    r.addEventListener("click", open);
+    r.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+    });
+  });
+  document.querySelectorAll(".art").forEach((a) => {
+    a.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const kind = a.querySelector(".kind").textContent;
+      const viewer = { "表": "表格编辑器", "稿": "文档阅读器", "图": "看图器", "记": "笔记编辑器", "码": "代码 diff 视图" }[kind] || "查看器";
+      toast(`打开${viewer}——形态即入口（下一屏）。`);
+    });
+  });
+
   /* 召唤栏：问 / 书(派任务) 双态 */
   const askPh = "问点什么 —— 气泡应答，不落盘；派任务就用「书」";
   const writePh = "要什么结果？例：出 8 张秋日海报 · 查 Flowith 本月更新";
@@ -1063,7 +1202,8 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
   document.addEventListener("keydown", (e) => {
     if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
     if (e.key === "Escape" && adrawer.classList.contains("on")) { closeDrawer(); return; }
-    if (e.key === "c" || e.key === "C") toast("工单桌（C）在下一屏。");
+    if (e.key === "Escape" && desk.classList.contains("on")) { closeDesk(); return; }
+    if (e.key === "c" || e.key === "C") { desk.classList.contains("on") ? closeDesk() : openDesk(); }
     if (e.key === "l" || e.key === "L") toast("总账（L）在下一屏。");
   });
 })();
