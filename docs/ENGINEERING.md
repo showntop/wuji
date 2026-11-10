@@ -1,6 +1,6 @@
 # Wuji / 无极 — 工程设计（P0 开工版）
 
-> 版本：V1 · 2026-11-08
+> 版本：V1 · 2026-11-08 · 实现校准 2026-11-10（见文末 §8）
 > 地位：本文是**开工正典**。`ARCHITECTURE.md` 定系统分层（能力/harness/编制/工作台），`INTERFACE.md` 定交互形态与信息架构，本文定**第一个可上线切片的工程实现**：数据模型、包结构、技术选型、里程碑。
 > 范围：一人 + 多 Agent 的任务工作台（五轮演示验证过的形态），不含领域工作台（OPC 等，二期）与活文档（BLUEPRINT，三期）。
 
@@ -235,3 +235,24 @@ wuji/
 ## 7. 明确不做（P0）
 
 后端与协作 · 多主题 · 移动端专属 UI（响应式兜底沿用演示断点）· 活文档/卷野谱 · 领域工作台 · 权限系统 · 自建协议（AG-UI/A2UI 沿用）。
+
+---
+
+## 8. 实现校准（2026-11-10 包架构归位）
+
+M3 后对照 §3 做了一次纯结构重构（行为保持 + 5 处授权修正），包边界现在是实的：
+
+- **`@wuji/store`**：`createWujiStore` 工厂 + `actions/{task,gate,agent,inbox}` + `ledger`（id 序列 + log）+ `persist`（attach/read/clear，读回过 zod）+ `timeline` 两 selector。headless 可测（vitest 17 例）。
+- **`@wuji/workflow`**：`Canvas`（布局/边/节点/产物卡/视口拖拽缩放）、`GatePanel`、`RunLog`，全部 props 驱动，不 import store（依赖方向 §3 落实）；layout 5 例特性锁定测试。
+- **`@wuji/viewers`**：四形态视图分文件 + `findArtifact` 统一短名查找。
+- **`@wuji/ui`**：`Lamp/StatusTag/Mk/Plate/Seg7` + tokens。全部包经入口导入（仅 `Tokens.css` 走深路径）。
+- **web**：`store.ts` 只剩 fixtures 绑定与持久化挂载；壳状态（route/overlay/viewer/openTaskId）在 web 本地 `useShell`（§3 四切片不含壳状态）；`routes/`（Home/Tasks/Agents/TaskDetail/TaskRow）+ `shell/`（Desk/LedgerPanel/Summon/ViewerOverlay）。
+- **harness 接缝接通**：`web/harnessDriver.ts` 是 mock 事件 → store 动作的唯一翻译层；`@wuji/harness` 的 `runStep` 首次被消费，M4 换真模型只动 driver。
+
+**偏差记录（相对初版设计）**：
+
+1. **gate 步骤解锁转 waiting**（原：一律 running）——D7「审批门不可绕过」的直接落实；fixture T-09/s4（idle+approval）此前会被自动起跑绕过门。
+2. **mock 节奏走 `runStep`**（600ms×5/步，每步约 3s 完成）替代全局 4s tick（每步约 22-40s）——§5 mock 语义的对齐，演示节奏显著变快。
+3. **dispatchTask 内嵌 setTimeout 移除**——派单后方案步经 driver 自然跑完停在审批门（总时长同为 ~3s），文案由「执行方案完成 · 递你审批」泛化为解锁文案。
+4. **localStorage 存档读回过 zod**——损坏存档整档回退 fixtures，不再可能白屏。
+5. **持久化仍为 localStorage**（§4 原计划 P1 IndexedDB）——数据量为演示级，代码注释已声明升级阈值；未视为欠账。
