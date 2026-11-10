@@ -49,6 +49,7 @@ export interface Task {
 
 export interface Agent {
   id: ExecutorId; name: string; role: string; mk: string;
+  me?: boolean;                   // 坊主本人
   duty: string;
   trust: 1 | 2 | 3 | null;        // L1 产出必审 / L2 抽检 / L3 全自主 / null=不可授
   trustNote: string;

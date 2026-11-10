@@ -1,12 +1,108 @@
-// 视图装配：M1 起按 INTERFACE.md IA 逐步替换本占位
+import { useEffect } from "react";
+import { useStore, initPersistence, startHarnessMock, resetPersisted } from "./store";
+import { Views } from "./components/Views";
+import { Desk, LedgerPanel, Summon, ViewerOverlay } from "./components/Overlays";
+
 export default function App() {
+  const route = useStore((s) => s.route);
+  const setRoute = useStore((s) => s.setRoute);
+  const overlay = useStore((s) => s.overlay);
+  const viewer = useStore((s) => s.viewer);
+  const inbox = useStore((s) => s.inbox);
+  const tasks = useStore((s) => s.tasks);
+  const agents = useStore((s) => s.agents);
+
+  useEffect(() => {
+    initPersistence();
+    startHarnessMock();
+  }, []);
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName ?? "")) return;
+      if (e.metaKey || e.ctrlKey) return;
+      if (e.key === "Escape") { useStore.getState().setOverlay(null); useStore.getState().setViewer(null); }
+      if (e.key === "c" || e.key === "C") useStore.getState().setOverlay(overlay === "desk" ? null : "desk");
+      if (e.key === "l" || e.key === "L") useStore.getState().setOverlay(overlay === "ledger" ? null : "ledger");
+      if (e.key === "1") setRoute("home");
+      if (e.key === "2") setRoute("tasks");
+      if (e.key === "3") setRoute("agents");
+    };
+    document.addEventListener("keydown", h);
+    return () => document.removeEventListener("keydown", h);
+  }, [overlay, setRoute]);
+
+  const live = tasks.filter((t) => t.status !== "done").length;
+  const waiting = tasks.filter((t) => t.status === "waiting").length;
+  const myMinutes = tasks
+    .flatMap((t) => t.steps)
+    .filter((s) => s.executor === "me" && (s.status === "done" || s.status === "waiting"))
+    .length * 12; // 示例口径：每步约 12 分钟
+  const decided = tasks.filter((t) => t.steps.some((s) => s.status === "done" && s.gate?.type === "approval")).length;
+  const net = tasks
+    .filter((t) => t.status !== "done")
+    .reduce((a, t) => a + (t.budget?.weeklyCost ? Math.round(t.budget.weeklyCost * 4.2) : 0), 0) + 24600;
+
   return (
-    <main style={{ background: "var(--floor)", color: "var(--ink)", minHeight: "100vh",
-                   fontFamily: "var(--f-body)", display: "grid", placeItems: "center" }}>
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontFamily: "var(--f-cond)", fontWeight: 700, fontSize: 28 }}>无极 · 工程版骨架</div>
-        <p style={{ color: "var(--ink-3)" }}>M0 —— model / store / workflow / viewers 就位后此页接真数据</p>
-      </div>
-    </main>
+    <>
+      <header className="topbar">
+        <div className="brand">
+          <svg className="brand-mark" viewBox="0 0 22 44" aria-hidden="true">
+            <rect x="3" y="1" width="16" height="9" fill="#ff4a35" /><rect x="3" y="11" width="16" height="9" fill="#ffc21a" />
+            <rect x="3" y="21" width="16" height="9" fill="#3ad16f" /><rect x="9" y="31" width="4" height="9" fill="#3a3a36" />
+            <rect x="4" y="40" width="14" height="3" fill="#3a3a36" />
+          </svg>
+          <div className="brand-name">无极</div>
+        </div>
+        <div className="meters">
+          <div className="meter"><span className="meter-label">本周净额（示例口径）</span>
+            <span className="meter-val"><span className="meter-unit">¥</span><span className="seg7 green" aria-hidden="true"><span className="ghost">88888</span><span className="val">{String(net).padStart(5, "0").slice(-5)}</span></span></span></div>
+          <div className="meter"><span className="meter-label">我的投入</span>
+            <span className="meter-val"><span className="seg7" aria-hidden="true"><span className="ghost">888</span><span className="val">{String(myMinutes).padStart(3, "0")}</span></span><span className="meter-unit">分钟</span></span></div>
+          <div className="meter"><span className="meter-label">在跑 / 等你</span>
+            <span className="meter-val"><span className="meter-small">{live}<em> / {waiting}</em></span></span></div>
+          <div className="meter"><span className="meter-label">审批已决（示例）</span>
+            <span className="meter-val"><span className="meter-small">{decided}</span></span></div>
+        </div>
+        <div className="topnav">
+          <div className="navtabs" role="group" aria-label="视图">
+            <button aria-pressed={route === "home"} onClick={() => setRoute("home")}>工作台</button>
+            <button aria-pressed={route === "tasks"} onClick={() => setRoute("tasks")}>任务<span className="n">{tasks.length}</span></button>
+            <button aria-pressed={route === "agents"} onClick={() => setRoute("agents")}>Agent</button>
+          </div>
+          <button className="btn" onClick={() => document.getElementById("summon-input")?.focus()}>
+            <span className="kbd">⌘K</span>发起
+          </button>
+          <button className={`inbox-btn${inbox.length ? "" : " clear"}`} onClick={() => useStore.getState().setOverlay(overlay === "desk" ? null : "desk")}>
+            <i className="beacon" /><span>待处理</span><span className="count">{inbox.length}</span>
+          </button>
+        </div>
+      </header>
+
+      {route !== "task" && (
+        <div className="strip">
+          <span className="sample">示例数据</span>
+          <span>本地优先 · 状态存于本机</span>
+          <span>任务 <b>{tasks.length}</b> · <b>{live}</b> 进行中</span>
+          {waiting > 0 && <span className="alert">等你 ×{waiting}</span>}
+          {tasks.some((t) => t.status === "blocked") && <span className="alert stop">有阻塞</span>}
+          <span className="legend">
+            {[["进行中", "var(--go)"], ["等待你", "var(--call)"], ["阻塞", "var(--stop)"], ["等待外部", "var(--hold)"], ["已完成", "var(--done)"]].map(([l, c]) => (
+              <span key={l}><i style={{ background: c }} />{l}</span>
+            ))}
+          </span>
+        </div>
+      )}
+
+      <Views />
+      <Summon />
+      <Desk />
+      <LedgerPanel />
+      <ViewerOverlay />
+      <button className="btn sm ghost" style={{ position: "fixed", right: 16, bottom: 70, zIndex: 36 }}
+              onClick={() => { if (confirm("清空本机存档并重置为示例数据？")) resetPersisted(); }}>
+        重置示例
+      </button>
+    </>
   );
 }

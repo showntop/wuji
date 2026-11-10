@@ -11,7 +11,8 @@
     "@wuji/workflow": "workspace:*",
     "@wuji/viewers": "workspace:*",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
@@ -20,6 +21,8 @@
     "@vitejs/plugin-react": "^4.3.1"
   },
   "scripts": {
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "build": "vite build",
+    "dev": "vite"
   }
 }
