@@ -26,3 +26,14 @@ export function Mk({ mk, me }: { mk: string; me?: boolean }) {
 export function Plate({ id, sm }: { id: string; sm?: boolean }) {
   return <span className={`plate${sm ? " sm" : ""}`}>{id}</span>;
 }
+
+/** 七段计数管：ghost 衍底 + val 前景，右对齐截取（DSEG7 视觉词汇） */
+export function Seg7({ value, digits, green }: { value: string | number; digits: number; green?: boolean }) {
+  const text = String(value).padStart(digits, "0").slice(-digits);
+  return (
+    <span className={`seg7${green ? " green" : ""}`} aria-hidden="true">
+      <span className="ghost">{"8".repeat(digits)}</span>
+      <span className="val">{text}</span>
+    </span>
+  );
+}

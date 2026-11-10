@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Agent, InboxItem } from "@wuji/model";
 import { useStore } from "../store";
 import { useShell } from "../shellStore";
-import { Mk } from "@wuji/ui/src/components";
+import { Mk } from "@wuji/ui";
 import { ArtifactView, findArtifact } from "@wuji/viewers";
 
 const KIND_CN: Record<string, string> = { decision: "决策", confirm: "确认", fyi: "知情" };

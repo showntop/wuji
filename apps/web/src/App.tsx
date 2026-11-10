@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useStore, initPersistence, resetPersisted } from "./store";
 import { useShell } from "./shellStore";
 import { startHarnessDriver } from "./harnessDriver";
+import { Seg7 } from "@wuji/ui";
 import { Views } from "./components/Views";
 import { Desk, LedgerPanel, Summon, ViewerOverlay } from "./components/Overlays";
 
@@ -58,9 +59,9 @@ export default function App() {
         </div>
         <div className="meters">
           <div className="meter"><span className="meter-label">本周净额（示例口径）</span>
-            <span className="meter-val"><span className="meter-unit">¥</span><span className="seg7 green" aria-hidden="true"><span className="ghost">88888</span><span className="val">{String(net).padStart(5, "0").slice(-5)}</span></span></span></div>
+            <span className="meter-val"><span className="meter-unit">¥</span><Seg7 value={net} digits={5} green /></span></div>
           <div className="meter"><span className="meter-label">我的投入</span>
-            <span className="meter-val"><span className="seg7" aria-hidden="true"><span className="ghost">888</span><span className="val">{String(myMinutes).padStart(3, "0")}</span></span><span className="meter-unit">分钟</span></span></div>
+            <span className="meter-val"><Seg7 value={myMinutes} digits={3} /><span className="meter-unit">分钟</span></span></div>
           <div className="meter"><span className="meter-label">在跑 / 等你</span>
             <span className="meter-val"><span className="meter-small">{live}<em> / {waiting}</em></span></span></div>
           <div className="meter"><span className="meter-label">审批已决（示例）</span>
