@@ -124,6 +124,19 @@ importers:
       '@wuji/model':
         specifier: workspace:*
         version: link:../model
+      '@wuji/ui':
+        specifier: workspace:*
+        version: link:../ui
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.3
+        version: 18.3.31
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.1
 
 packages:
 

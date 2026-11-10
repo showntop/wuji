@@ -5,10 +5,16 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
-    "@wuji/model": "workspace:*"
+    "@wuji/model": "workspace:*",
+    "@wuji/ui": "workspace:*",
+    "react": "^18.3.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "vitest": "^1.6.0"
+  },
   "scripts": {
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit && vitest run",
+    "test": "vitest run"
   }
 }
