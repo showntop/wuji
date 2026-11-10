@@ -117,7 +117,7 @@
 
 ## 6. 视觉
 
-钢灰工坊皮保留为**纯视觉**（四层钢灰、状态五色、七段计数、DSEG7、Barlow Condensed + PingFang、方角铁则），见 `shell/DESIGN.md`。术语与信息架构以本文件为准。签名动效收敛为两条：新内容「渐显入场」，等待你的事项「缓慢脉冲」；其余动效仅状态反馈，全部尊重 `prefers-reduced-motion`。
+钢灰工坊皮保留为**纯视觉**（四层钢灰、状态五色、七段计数、DSEG7、Barlow Condensed + PingFang、方角铁则），见 `demo/shell/DESIGN.md`。术语与信息架构以本文件为准。签名动效收敛为两条：新内容「渐显入场」，等待你的事项「缓慢脉冲」；其余动效仅状态反馈，全部尊重 `prefers-reduced-motion`。
 
 ## 7. 反模式
 

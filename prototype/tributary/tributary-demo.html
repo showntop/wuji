@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>支流 Tributary · 交互原型 v0.1</title>
+<style>
+  :root {
+    --bg: #17181d;
+    --panel: #1d1f27;
+    --elev: #262933;
+    --elev2: #2d3040;
+    --stroke: #34373f;
+    --text: #e7e8ec;
+    --text2: #9a9daa;
+    --text3: #6b6e7c;
+    --accent: #5b8def;
+    --accent-soft: rgba(91,141,239,.14);
+    --merge: #4caf7d;
+    --merge-soft: rgba(76,175,125,.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 14px/1.65 -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    overflow: hidden;
+  }
+  #app { display: flex; height: 100vh; }
+
+  /* ---------- 左栏 ---------- */
+  #sidebar {
+    width: 224px; flex-shrink: 0; background: var(--panel);
+    border-right: 1px solid var(--stroke); padding: 14px 12px;
+    display: flex; flex-direction: column; gap: 4px; overflow-y: auto;
+  }
+  .brand { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+  .brand span { color: var(--text3); font-weight: 400; font-size: 11px; margin-left: 6px; }
+  .side-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 6px; }
+  .tree-item { padding: 4px 8px; border-radius: 6px; font-size: 12.5px; cursor: pointer; color: var(--text2); }
+  .tree-item:hover { background: var(--elev); color: var(--text); }
+  .tree-item.branch { padding-left: 24px; position: relative; }
+  .tree-item.branch::before { content: "├"; position: absolute; left: 10px; color: var(--text3); }
+  .tree-item.merged { color: var(--text3); }
+  .tree-item.active { background: var(--accent-soft); color: var(--accent); }
+  .tree-badge { font-size: 10px; border: 1px solid var(--stroke); border-radius: 8px; padding: 0 5px; margin-left: 6px; color: var(--text3); }
+  .ledger-item { border: 1px solid var(--stroke); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; cursor: pointer; background: var(--elev); }
+  .ledger-item:hover { border-color: var(--accent); }
+  .ledger-item .lt { color: var(--merge); font-size: 11px; margin-bottom: 2px; }
+  .ledger-empty { font-size: 12px; color: var(--text3); padding: 4px 8px; }
+
+  /* ---------- 中栏 ---------- */
+  main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #guide {
+    background: var(--accent-soft); border-bottom: 1px solid var(--stroke);
+    padding: 8px 20px; font-size: 12.5px; color: var(--text2); display: flex; gap: 8px; align-items: center;
+  }
+  #guide b { color: var(--accent); }
+  #guide .close { margin-left: auto; cursor: pointer; color: var(--text3); padding: 0 4px; }
+  #scroll { flex: 1; overflow-y: auto; padding: 24px 0 12px; }
+  #flow { max-width: 780px; margin: 0 auto; padding: 0 28px; display: flex; flex-direction: column; gap: 18px; }
+
+  .msg { animation: rise .25s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .msg .role { font-size: 11.5px; color: var(--text3); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .msg .body { position: relative; }
+  .msg.user .body {
+    background: var(--elev); border: 1px solid var(--stroke);
+    border-radius: 10px; padding: 10px 14px; display: inline-block; max-width: 92%;
+  }
+  .msg.agent .body { padding: 2px 40px 2px 2px; white-space: pre-wrap; }
+  .msg .num { color: var(--text3); font-size: 10.5px; }
+  .msg .actions {
+    position: absolute; top: 0; right: 0; display: none; gap: 6px;
+  }
+  .msg.agent .body:hover .actions { display: flex; }
+  .act-btn {
+    font-size: 11.5px; color: var(--accent); background: var(--accent-soft);
+    border: 1px solid rgba(91,141,239,.35); border-radius: 6px; padding: 2px 9px; cursor: pointer;
+  }
+  .act-btn:hover { background: rgba(91,141,239,.28); }
+
+  /* 选中文本浮动按钮 */
+  #quoteBtn {
+    position: fixed; z-index: 50; display: none;
+    font-size: 12px; color: #fff; background: var(--accent);
+    border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer;
+  }
+
+  /* ---------- 支线 ---------- */
+  .branch-wrap {
+    margin: -6px 0 0 10px; padding-left: 14px;
+    border-left: 2px solid var(--accent);
+    display: flex; flex-direction: column; gap: 12px;
+    animation: rise .3s ease;
+  }
+  .branch-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .branch-title { font-size: 12px; color: var(--accent); font-weight: 600; }
+  .scope-chip {
+    font-size: 11px; color: var(--text2); background: var(--elev);
+    border: 1px solid var(--stroke); border-radius: 10px; padding: 1px 10px; cursor: pointer;
+  }
+  .scope-chip:hover { border-color: var(--accent); }
+  .branch-quote {
+    font-size: 12px; color: var(--text2); border-left: 3px solid var(--stroke);
+    padding: 2px 10px; margin: 0; font-style: italic;
+  }
+  .branch-wrap .msg.agent .body { padding-right: 2px; }
+  .branch-input { display: flex; gap: 8px; }
+  .branch-input input {
+    flex: 1; background: var(--elev); border: 1px solid var(--stroke); border-radius: 8px;
+    color: var(--text); padding: 8px 12px; font-size: 13px; outline: none;
+  }
+  .branch-input input:focus { border-color: var(--accent); }
+  .btn {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 8px 14px; font-size: 12.5px; cursor: pointer; white-space: nowrap;
+  }
+  .btn:hover { filter: brightness(1.12); }
+  .btn.ghost { background: var(--elev); color: var(--text2); border: 1px solid var(--stroke); }
+  .btn.ghost:hover { color: var(--text); border-color: var(--accent); }
+  .btn.merge { background: var(--merge); }
+  .branch-footer { display: flex; gap: 8px; align-items: center; }
+  .branch-footer .hint { font-size: 11.5px; color: var(--text3); }
+  .branch-merged-tag {
+    font-size: 12px; color: var(--merge); background: var(--merge-soft);
+    border: 1px solid rgba(76,175,125,.35); border-radius: 8px; padding: 6px 12px;
+  }
+
+  /* ---------- 合并节点 ---------- */
+  .merge-node {
+    border: 1px solid rgba(76,175,125,.4); background: var(--merge-soft);
+    border-radius: 10px; padding: 12px 16px; animation: rise .3s ease;
+  }
+  .merge-node .mh { font-size: 12px; color: var(--merge); font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .merge-node .mh .jump { margin-left: auto; font-weight: 400; color: var(--text3); cursor: pointer; font-size: 11px; }
+  .merge-node .mh .jump:hover { color: var(--accent); }
+  .merge-node .mc { font-size: 13px; white-space: pre-wrap; }
+
+  /* ---------- 交互组件 ---------- */
+  .option-card { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .option-card .opt {
+    background: var(--elev); border: 1px solid var(--stroke); border-radius: 8px;
+    padding: 8px 14px; font-size: 12.5px; cursor: pointer; color: var(--text);
+  }
+  .option-card .opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .option-card .opt.picked { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); pointer-events: none; }
+  .opt-note { font-size: 11.5px; color: var(--text3); margin-top: 6px; }
+
+  .matrix { margin-top: 10px; border: 1px solid var(--stroke); border-radius: 10px; overflow: hidden; }
+  .matrix table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .matrix th, .matrix td { padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--stroke); }
+  .matrix th { background: var(--elev); color: var(--text2); font-weight: 500; font-size: 12px; }
+  .matrix td:first-child, .matrix th:first-child { text-align: left; }
+  .matrix tr:last-child td { border-bottom: none; }
+  .matrix .win { color: var(--merge); font-weight: 700; }
+  .matrix .weights { padding: 10px 12px; background: var(--panel); border-top: 1px solid var(--stroke); display: flex; flex-direction: column; gap: 8px; }
+  .matrix .w-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text2); }
+  .matrix .w-row label { width: 60px; }
+  .matrix .w-row output { width: 20px; text-align: right; color: var(--text); }
+  .matrix input[type=range] { flex: 1; accent-color: var(--accent); height: 3px; }
+  .matrix .m-footer { padding: 10px 12px; background: var(--panel); border-top: 1px solid var(--stroke); display: flex; align-items: center; gap: 10px; }
+  .matrix .m-footer .score { font-size: 12.5px; }
+
+  /* ---------- 右栏 ---------- */
+  #context {
+    width: 268px; flex-shrink: 0; background: var(--panel);
+    border-left: 1px solid var(--stroke); padding: 16px 14px; overflow-y: auto;
+    transition: margin-right .2s ease;
+  }
+  #context.hidden { display: none; }
+  .ctx-title { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 8px; }
+  .ctx-title:first-child { margin-top: 0; }
+  .ctx-scope-item { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--text2); padding: 5px 8px; border-radius: 6px; }
+  .ctx-scope-item:hover { background: var(--elev); }
+  .ctx-scope-item input { margin-top: 4px; accent-color: var(--accent); }
+  .merge-edit textarea {
+    width: 100%; background: var(--elev); border: 1px solid var(--stroke); border-radius: 8px;
+    color: var(--text); font-size: 12.5px; padding: 8px 10px; resize: vertical; outline: none;
+    font-family: inherit; min-height: 54px; margin-bottom: 8px;
+  }
+  .merge-edit textarea:focus { border-color: var(--merge); }
+  .merge-edit label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 4px; }
+
+  /* ---------- 输入区 ---------- */
+  #composer { border-top: 1px solid var(--stroke); padding: 14px 28px 18px; background: var(--panel); }
+  #composer .inner { max-width: 780px; margin: 0 auto; display: flex; gap: 10px; }
+  #input {
+    flex: 1; background: var(--elev); border: 1px solid var(--stroke); border-radius: 10px;
+    color: var(--text); padding: 12px 16px; font-size: 14px; outline: none;
+  }
+  #input:focus { border-color: var(--accent); }
+  .typing { color: var(--text3); font-size: 12.5px; font-style: italic; animation: rise .2s ease; }
+  .typing::after { content: "…"; animation: dots 1.2s steps(3) infinite; }
+  @keyframes dots { 0% { content: ""; } 33% { content: "·"; } 66% { content: "··"; } 100% { content: "···"; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">支流<span>Tributary v0.1 原型</span></div>
+    <div class="side-label">会话树</div>
+    <div id="tree"></div>
+    <div class="side-label">决策台账</div>
+    <div id="ledger"><div class="ledger-empty">合并支线后，结论自动记录在这里</div></div>
+  </aside>
+
+  <main>
+    <div id="guide">
+      <span><b>演示路径</b>：① 悬停下方 Agent 的「方案 A」回复 → 点「追问此点」开支线 ② 支线里输入任意质疑（试试"多标签页竞态"）③ 点「回到主线」生成合并卡并确认 ④ 再开一条支线输入"对比一下方案 B"看交互组件</span>
+      <span class="close" onclick="this.parentElement.style.display='none'">✕</span>
+    </div>
+    <div id="scroll"><div id="flow"></div></div>
+    <div id="composer">
+      <div class="inner">
+        <input id="input" placeholder="主线 · 输入消息…（或悬停 Agent 回复 →「追问此点」开一条支线）" autocomplete="off">
+        <button class="btn" id="send">发送</button>
+      </div>
+    </div>
+  </main>
+
+  <aside id="context" class="hidden">
+    <div class="ctx-title" id="ctxBranchName">支线 · 上下文范围</div>
+    <div id="ctxScope"></div>
+    <div class="ctx-title">合并回主线</div>
+    <div id="mergePanel"></div>
+  </aside>
+</div>
+<button id="quoteBtn">就这句质疑</button>
+
+<script>
+/* ================= 数据模型：对话 DAG ================= */
+let seq = 0;
+const nid = () => "n" + (++seq);
+
+const state = {
+  main: [],            // 主线节点 id 序列（含 merge 节点）
+  nodes: {},           // id -> {id, role, text, num?, type:'msg'|'merge', branchId?}
+  branches: {},        // bid -> branch
+  branchOrder: [],
+  ledger: [],
+};
+
+function addMain(role, text, component) {
+  const id = nid();
+  state.nodes[id] = { id, role, text, type: "msg", component };
+  state.main.push(id);
+  return id;
+}
+function mainNum(id) {
+  const msgs = state.main.filter(x => state.nodes[x].type === "msg");
+  return "#" + (msgs.indexOf(id) + 1);
+}
+
+/* ================= Mock Agent 脚本 ================= */
+const RACE_RE = /(竞态|标签|轮换|刷新|token|并发)/i;
+const CMP_RE = /(对比|比较|方案 ?b|session|cookie|备选|另一个)/i;
+
+function branchScript(text, branch) {
+  if (CMP_RE.test(text)) return { kind: "matrix" };
+  if (RACE_RE.test(text)) return { kind: "text", text:
+"好问题，这正是方案 A 的已知坑：多标签页共享同一个 refresh token 时，两个标签可能同时发起轮换——旧 token 一旦失效，后到的请求会被踢下线。\n\n两个修法可以叠加：\n1) 滑动轮换 —— 旧 token 保留约 10s 宽限期，容忍并发刷新；\n2) 广播失效 —— 用 BroadcastChannel 指定一个标签页主导刷新，再把新 token 广播给其他标签。\n\n修正后的方案记为 A′（JWT + 滑动轮换 + 广播失效）。结论层面方案 A 依然成立，只是轮换策略要换。" };
+  return { kind: "text", text:
+"收到。这条支线拥有独立上下文（继承自主线 fork 点），我们可以在这里把这个问题聊透，主线不会被打断。\n\n如果这是质疑，我会逐条回应；如果是替代方向，我可以展开对比。聊完后点下方「回到主线」，我会把结论整理成合并卡插回主线。\n\n（演示提示：试试输入「多标签页竞态」或「对比一下方案 B」）" };
+}
+
+const MAIN_AFTER_MERGE =
+"已按 A′ 更新主线。实现计划草案：\n1) 签发与校验：JWT (RS256)，access token 15 分钟；\n2) 滑动轮换：refresh token 单次使用 + 10s 宽限窗；\n3) 多标签同步：BroadcastChannel 广播失效，主标签页主导刷新；\n4) 登出：服务端吊销列表 + 全标签广播。\n\n接下来先落地哪一块？（下面这题可以直接点选）";
+
+/* ================= 渲染：主线 ================= */
+const flow = document.getElementById("flow");
+const scrollBox = document.getElementById("scroll");
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function scrollBottom() { scrollBox.scrollTop = scrollBox.scrollHeight; }
+
+function renderMainMsg(node) {
+  const wrap = el("div", "msg " + node.role);
+  wrap.dataset.nodeId = node.id;
+  const role = el("div", "role", node.role === "user" ? "你" : "Agent");
+  const num = el("span", "num", mainNum(node.id));
+  role.appendChild(num);
+  const body = el("div", "body");
+  body.textContent = node.text;
+  if (node.role === "agent") {
+    const actions = el("div", "actions");
+    const btn = el("button", "act-btn", "追问此点");
+    btn.onclick = () => openBranch(node.id);
+    actions.appendChild(btn);
+    body.appendChild(actions);
+  }
+  wrap.appendChild(role);
+  wrap.appendChild(body);
+  if (node.component === "options") wrap.appendChild(renderOptionCard(node));
+  // 支线容器挂在这条消息后面
+  const branchHost = el("div", "branch-host");
+  branchHost.style.cssText = "display:flex;flex-direction:column;gap:14px;margin-top:4px;";
+  wrap.appendChild(branchHost);
+  return wrap;
+}
+
+function renderMergeNode(node) {
+  const wrap = el("div", "merge-node");
+  wrap.dataset.nodeId = node.id;
+  const b = state.branches[node.branchId];
+  const h = el("div", "mh", "⇤ 合并自 " + b.title);
+  const jump = el("span", "jump", "查看支线");
+  jump.onclick = () => {
+    const t = document.querySelector(`[data-branch-id="${b.id}"]`);
+    if (t) { t.scrollIntoView({ behavior: "smooth", block: "center" }); t.style.outline = "1px solid var(--accent)"; setTimeout(() => t.style.outline = "none", 1200); }
+  };
+  h.appendChild(jump);
+  const c = el("div", "mc", node.text);
+  wrap.appendChild(h); wrap.appendChild(c);
+  return wrap;
+}
+
+function renderFlow() {
+  flow.innerHTML = "";
+  for (const id of state.main) {
+    const node = state.nodes[id];
+    if (node.type === "merge") { flow.appendChild(renderMergeNode(node)); continue; }
+    const m = renderMainMsg(node);
+    const host = m.querySelector(".branch-host");
+    for (const bid of state.branchOrder) {
+      const b = state.branches[bid];
+      if (b.forkId === id) host.appendChild(renderBranch(b));
+    }
+    flow.appendChild(m);
+  }
+}
+
+/* ================= 支线 ================= */
+function openBranch(forkId, quote) {
+  const idx = state.branchOrder.length + 1;
+  const bid = "b" + idx;
+  const branch = {
+    id: bid, forkId, title: "支线 " + "①②③④⑤"[idx - 1],
+    status: "active", quote: quote || null,
+    scope: state.main.filter(x => state.nodes[x].type === "msg").slice(0, state.main.indexOf(forkId) + 1),
+    msgs: [], merged: null,
+  };
+  state.branches[bid] = branch;
+  state.branchOrder.push(bid);
+  renderFlow(); renderTree(); renderContext(bid);
+  // Agent 开场
+  setTimeout(() => {
+    pushBranchMsg(bid, "agent",
+      "已从此处开出" + branch.title + "。本支线继承主线至 " + mainNum(forkId) + " 的上下文（右栏可调整范围），讨论不会打断主线。" +
+      (quote ? "\n\n你引用了这段话：\n「" + quote + "」" : "") +
+      "\n\n想质疑或探索什么？");
+    scrollBottom();
+  }, 450);
+  // 聚焦支线输入框
+  setTimeout(() => {
+    const input = document.querySelector(`[data-branch-id="${bid}"] input`);
+    if (input) input.focus();
+  }, 60);
+}
+
+function renderBranch(b) {
+  const wrap = el("div", "branch-wrap");
+  wrap.dataset.branchId = b.id;
+  const head = el("div", "branch-head");
+  head.appendChild(el("span", "branch-title", b.title + (b.status === "merged" ? " · 已合并" : " · 进行中")));
+  const chip = el("span", "scope-chip", "继承：主线至 " + mainNum(b.forkId) + " · 引用 " + b.scope.length + " 条");
+  chip.title = "点击查看上下文范围（右栏）";
+  chip.onclick = () => renderContext(b.id);
+  head.appendChild(chip);
+  wrap.appendChild(head);
+  if (b.quote) wrap.appendChild(el("div", "branch-quote", "「" + b.quote + "」"));
+  for (const m of b.msgs) wrap.appendChild(renderBranchMsg(b, m));
+  if (b.status === "active") {
+    const footer = el("div", "branch-footer");
+    const input = document.createElement("input");
+    input.placeholder = b.title + " · 追问 / 质疑…";
+    input.onkeydown = (e) => { if (e.key === "Enter" && input.value.trim()) branchSend(b.id, input.value.trim()); };
+    const sendBtn = el("button", "btn ghost", "发送");
+    sendBtn.onclick = () => { if (input.value.trim()) branchSend(b.id, input.value.trim()); };
+    const mergeBtn = el("button", "btn merge", "回到主线 ↩");
+    mergeBtn.onclick = () => openMergeEditor(b.id);
+    const hint = el("span", "hint", "结论将以合并卡插回主线");
+    footer.appendChild(input); footer.appendChild(sendBtn); footer.appendChild(mergeBtn); footer.appendChild(hint);
+    wrap.appendChild(footer);
+  } else {
+    wrap.appendChild(el("div", "branch-merged-tag", "✓ 已合并回主线 · 结论见主线中的合并卡"));
+  }
+  return wrap;
+}
+
+function renderBranchMsg(b, m) {
+  const wrap = el("div", "msg " + m.role);
+  const role = el("div", "role", m.role === "user" ? "你（" + b.title + "）" : "Agent（" + b.title + "）");
+  const body = el("div", "body");
+  body.textContent = m.text;
+  wrap.appendChild(role); wrap.appendChild(body);
+  if (m.component === "options") wrap.appendChild(renderOptionCard(m));
+  if (m.component === "matrix") wrap.appendChild(renderMatrix(b, m));
+  return wrap;
+}
+
+function pushBranchMsg(bid, role, text, component) {
+  const b = state.branches[bid];
+  b.msgs.push({ role, text, component });
+  renderFlow(); renderTree();
+}
+
+function branchSend(bid, text) {
+  const b = state.branches[bid];
+  if (b.status !== "active") return;
+  pushBranchMsg(bid, "user", text);
+  const refocus = () => {
+    const inp = document.querySelector(`[data-branch-id="${bid}"] input`);
+    if (inp) inp.focus();
+  };
+  refocus();
+  // typing
+  const host = document.querySelector(`[data-branch-id="${bid}"]`);
+  const t = el("div", "typing", "Agent 正在输入");
+  const footer = host && host.querySelector(".branch-footer");
+  if (footer) footer.before(t);
+  scrollBottom();
+  setTimeout(() => {
+    const reply = branchScript(text, b);
+    if (reply.kind === "matrix") {
+      pushBranchMsg(bid, "agent",
+        "来做个结构化对比。下面这张评分矩阵可以直接调权重——你拖动滑杆，加权总分实时变化。调好后点「采用此结论」，我会把它记为本支线的结论：", "matrix");
+    } else {
+      pushBranchMsg(bid, "agent", reply.text);
+    }
+    refocus();
+    scrollBottom();
+  }, 750);
+}
+
+/* ================= 交互组件：选项卡 ================= */
+function renderOptionCard(owner) {
+  const card = el("div", "option-card");
+  const opts = ["先落地 Token 轮换", "先写登录/登出流程", "先补威胁模型与测试", "我自己说（下方输入）"];
+  for (const o of opts) {
+    const btn = el("button", "opt", o);
+    if (owner && owner.picked) {
+      btn.classList.add("picked");
+      if (owner.picked === o) btn.style.outline = "2px solid var(--accent)";
+    }
+    btn.onclick = () => {
+      if (owner && owner.picked) return;
+      if (owner) owner.picked = o;
+      card.querySelectorAll(".opt").forEach(x => x.classList.add("picked"));
+      btn.style.outline = "2px solid var(--accent)";
+      if (o.startsWith("我自己")) return;
+      mainSend(o);
+    };
+    card.appendChild(btn);
+  }
+  const note = el("div", "opt-note", "可点选，也可以不理会、直接自由输入 —— 组件永远带文本逃生舱。");
+  const holder = el("div"); holder.appendChild(card); holder.appendChild(note);
+  return holder;
+}
+
+/* ================= 交互组件：评分矩阵 ================= */
+function renderMatrix(b, m) {
+  const dims = ["安全性", "实现成本", "扩展性"];
+  const scores = { "A′ JWT滑动轮换": [9, 6, 8], "B Session+Cookie": [8, 8, 5] };
+  const weights = [7, 5, 6];
+
+  const box = el("div", "matrix");
+  const table = document.createElement("table");
+  function calc() {
+    const totalW = weights.reduce((a, c) => a + c, 0);
+    const out = {};
+    for (const k of Object.keys(scores))
+      out[k] = scores[k].reduce((a, s, i) => a + s * weights[i], 0) / totalW;
+    return out;
+  }
+  function redraw() {
+    const res = calc();
+    const keys = Object.keys(scores);
+    const winKey = res[keys[0]] >= res[keys[1]] ? keys[0] : keys[1];
+    table.innerHTML = "";
+    const trh = document.createElement("tr");
+    trh.innerHTML = "<th>方案</th>" + dims.map((d, i) => `<th>${d} (w=${weights[i]})</th>`).join("") + "<th>加权总分</th>";
+    table.appendChild(trh);
+    for (const k of keys) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${k}</td>` + scores[k].map(s => `<td>${s}</td>`).join("") +
+        `<td class="${k === winKey ? "win" : ""}">${res[k].toFixed(1)}</td>`;
+      table.appendChild(tr);
+    }
+    scoreLine.textContent = `当前结论：${winKey} 胜出（${res[winKey].toFixed(1)} vs ${res[keys.find(k=>k!==winKey)].toFixed(1)}）`;
+    scoreLine.dataset.win = winKey;
+    scoreLine.dataset.score = res[winKey].toFixed(1);
+  }
+  box.appendChild(table);
+  const wbox = el("div", "weights");
+  dims.forEach((d, i) => {
+    const row = el("div", "w-row");
+    const label = document.createElement("label"); label.textContent = d;
+    const range = document.createElement("input");
+    range.type = "range"; range.min = 0; range.max = 10; range.value = weights[i];
+    const out = document.createElement("output"); out.textContent = weights[i];
+    range.oninput = () => { weights[i] = +range.value; out.textContent = range.value; redraw(); };
+    row.appendChild(label); row.appendChild(range); row.appendChild(out);
+    wbox.appendChild(row);
+  });
+  box.appendChild(wbox);
+  const footer = el("div", "m-footer");
+  const scoreLine = el("span", "score");
+  const adopt = el("button", "btn", "采用此结论");
+  if (m.adopted) { adopt.disabled = true; adopt.textContent = "已采用 ✓"; }
+  adopt.onclick = () => {
+    if (adopt.disabled) return;
+    m.adopted = true;
+    adopt.disabled = true; adopt.textContent = "已采用 ✓";
+    pushBranchMsg(b.id, "user", `我按权重对比后选定 ${scoreLine.dataset.win}（加权 ${scoreLine.dataset.score}）`);
+    setTimeout(() => {
+      pushBranchMsg(b.id, "agent",
+        "已记录：本次操作作为结构化事件写回支线上下文（方案、权重、总分都有据可查）。\n\n点下方「回到主线」，我会把「" + scoreLine.dataset.win + "」作为本支线结论生成合并卡。");
+      scrollBottom();
+    }, 600);
+  };
+  footer.appendChild(scoreLine); footer.appendChild(adopt);
+  box.appendChild(footer);
+  redraw();
+  return box;
+}
+
+/* ================= 右栏：上下文范围 + 合并编辑 ================= */
+const ctxPanel = document.getElementById("context");
+function renderContext(bid) {
+  const b = state.branches[bid];
+  if (!b) { ctxPanel.classList.add("hidden"); return; }
+  ctxPanel.classList.remove("hidden");
+  document.getElementById("ctxBranchName").textContent = b.title + " · 上下文范围";
+  const scope = document.getElementById("ctxScope");
+  scope.innerHTML = "";
+  for (const nid2 of b.scope) {
+    const n = state.nodes[nid2];
+    const item = el("label", "ctx-scope-item");
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = true;
+    cb.onchange = () => {
+      const chip = document.querySelector(`[data-branch-id="${bid}"] .scope-chip`);
+      const on = scope.querySelectorAll("input:checked").length;
+      if (chip) chip.textContent = "继承：主线至 " + mainNum(b.forkId) + " · 引用 " + on + " 条";
+    };
+    const txt = el("span", null, mainNum(nid2) + " " + (n.role === "user" ? "你" : "Agent") + "：" + n.text.slice(0, 18) + "…");
+    item.appendChild(cb); item.appendChild(txt);
+    scope.appendChild(item);
+  }
+  renderMergePanel(bid, false);
+}
+
+function renderMergePanel(bid, editing) {
+  const b = state.branches[bid];
+  const p = document.getElementById("mergePanel");
+  p.innerHTML = "";
+  if (b.status === "merged") { p.appendChild(el("div", "ledger-empty", "本支线已合并。")); return; }
+  if (b.msgs.filter(m => m.role === "user").length === 0) {
+    p.appendChild(el("div", "ledger-empty", "支线里至少讨论一轮后，才能生成合并卡。"));
+    return;
+  }
+  if (!editing) {
+    const hint = el("div", "ledger-empty", "讨论告一段落后：");
+    const btn = el("button", "btn merge", "生成合并卡 · 回到主线");
+    btn.style.marginTop = "8px";
+    btn.onclick = () => openMergeEditor(bid);
+    p.appendChild(hint); p.appendChild(btn);
+    return;
+  }
+  // 编辑器
+  const box = el("div", "merge-edit");
+  const guess = guessMerge(b);
+  box.appendChild(el("label", null, "结论（将插回主线，Agent 后续可见）"));
+  const ta1 = document.createElement("textarea"); ta1.value = guess.conclusion; box.appendChild(ta1);
+  box.appendChild(el("label", null, "弃案与原因"));
+  const ta2 = document.createElement("textarea"); ta2.value = guess.rejected; box.appendChild(ta2);
+  box.appendChild(el("label", null, "待办 / 约束"));
+  const ta3 = document.createElement("textarea"); ta3.value = guess.todo; box.appendChild(ta3);
+  const row = el("div"); row.style.cssText = "display:flex;gap:8px;";
+  const ok = el("button", "btn merge", "确认合并 ↩");
+  ok.onclick = () => confirmMerge(bid, ta1.value, ta2.value, ta3.value);
+  const cancel = el("button", "btn ghost", "取消");
+  cancel.onclick = () => renderMergePanel(bid, false);
+  row.appendChild(ok); row.appendChild(cancel);
+  box.appendChild(row);
+  p.appendChild(box);
+}
+
+function openMergeEditor(bid) { renderContext(bid); renderMergePanel(bid, true); }
+
+function guessMerge(b) {
+  const all = b.msgs.map(m => m.text).join("\n");
+  if (/A′/.test(all) && /矩阵|加权|选定/.test(all))
+    return { conclusion: "经评分矩阵加权对比，采用 A′（JWT + 滑动轮换 + 广播失效），加权得分更高。", rejected: "方案 B（Session+Cookie）：跨域扩展性不足。", todo: "实现时保留权重假设（安全>扩展>成本）备查。" };
+  if (/A′/.test(all))
+    return { conclusion: "方案 A 修正为 A′：JWT + 滑动轮换（旧 token 10s 宽限）+ BroadcastChannel 广播失效，解决多标签页竞态。", rejected: "无。", todo: "落地轮换与广播逻辑；补充并发测试。" };
+  return { conclusion: b.msgs.filter(m => m.role === "user").map(m => m.text).slice(-1)[0] || "（请填写结论）",
+    rejected: "（可选）", todo: "（可选）" };
+}
+
+function confirmMerge(bid, c, r, t) {
+  const b = state.branches[bid];
+  b.status = "merged";
+  const text = `结论：${c}\n弃案：${r}\n待办：${t}`;
+  const id = nid();
+  state.nodes[id] = { id, role: "agent", text, type: "merge", branchId: bid };
+  // 插到 fork 点之后（主线中紧邻的下一位）
+  const forkIdx = state.main.indexOf(b.forkId);
+  state.main.splice(forkIdx + 1, 0, id);
+  b.merged = id;
+  state.ledger.push({ bid, text: c, nodeId: id });
+  renderFlow(); renderTree(); renderLedger(); renderContext(bid);
+  // 主线 Agent 接话（带选项卡组件）
+  setTimeout(() => {
+    addMain("agent", MAIN_AFTER_MERGE, "options");
+    renderFlow(); renderTree(); scrollBottom();
+  }, 700);
+}
+
+/* ================= 左栏：树 + 台账 ================= */
+function renderTree() {
+  const tree = document.getElementById("tree");
+  tree.innerHTML = "";
+  const main = el("div", "tree-item", "▾ 主线 · 鉴权方案");
+  main.onclick = () => scrollBox.scrollTo({ top: 0, behavior: "smooth" });
+  tree.appendChild(main);
+  for (const bid of state.branchOrder) {
+    const b = state.branches[bid];
+    const item = el("div", "tree-item branch" + (b.status === "merged" ? " merged" : ""), b.title);
+    const badge = el("span", "tree-badge", b.status === "merged" ? "已合并" : b.msgs.length + " 条");
+    item.appendChild(badge);
+    item.onclick = () => {
+      const t = document.querySelector(`[data-branch-id="${bid}"]`);
+      if (t) t.scrollIntoView({ behavior: "smooth", block: "center" });
+      renderContext(bid);
+      tree.querySelectorAll(".tree-item").forEach(x => x.classList.remove("active"));
+      item.classList.add("active");
+    };
+    tree.appendChild(item);
+  }
+}
+
+function renderLedger() {
+  const box = document.getElementById("ledger");
+  if (state.ledger.length === 0) return;
+  box.innerHTML = "";
+  for (const l of state.ledger) {
+    const item = el("div", "ledger-item");
+    item.appendChild(el("div", "lt", "✓ " + state.branches[l.bid].title + " · 已合并"));
+    item.appendChild(el("div", null, l.text.slice(0, 42) + (l.text.length > 42 ? "…" : "")));
+    item.onclick = () => {
+      const t = document.querySelector(`[data-node-id="${l.nodeId}"]`);
+      if (t) { t.scrollIntoView({ behavior: "smooth", block: "center" }); }
+    };
+    box.appendChild(item);
+  }
+}
+
+/* ================= 主线输入 ================= */
+function mainSend(preset) {
+  const input = document.getElementById("input");
+  const text = preset || input.value.trim();
+  if (!text) return;
+  if (!preset) input.value = "";
+  flow.appendChild(renderMainMsg(state.nodes[addMain("user", text)]));
+  const t = el("div", "typing", "Agent 正在输入");
+  flow.appendChild(t); scrollBottom();
+  setTimeout(() => {
+    t.remove();
+    const merged = state.branchOrder.some(bid => state.branches[bid].status === "merged");
+    const reply = merged
+      ? "收到。当前主线上下文只包含合并摘要，不包含支线讨论细节——这正是「合流」的意义：你可以随时点合并卡上的「查看支线」回溯完整过程。\n\n（演示：再从任意 Agent 回复上开一条支线，试试输入「对比一下方案 B」看交互式评分矩阵。）"
+      : "收到。注意：此刻如果你直接追问，问题会混入主线上下文。\n\n更好的做法：悬停我上面那条「方案 A」回复 → 点「追问此点」，把质疑放进支线里讨论，聊完再合并回主线。";
+    flow.appendChild(renderMainMsg(state.nodes[addMain("agent", reply)]));
+    renderFlowKeepBranches();
+    scrollBottom();
+  }, 800);
+}
+function renderFlowKeepBranches() { renderFlow(); renderTree(); scrollBottom(); }
+
+document.getElementById("send").onclick = () => mainSend();
+document.getElementById("input").onkeydown = (e) => { if (e.key === "Enter") mainSend(); };
+
+/* ================= 选中文字 → 就这句质疑 ================= */
+const quoteBtn = document.getElementById("quoteBtn");
+let quoteCtx = null;
+document.addEventListener("mouseup", (e) => {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) { quoteBtn.style.display = "none"; return; }
+  const anchor = sel.anchorNode && sel.anchorNode.parentElement;
+  const msgBody = anchor && anchor.closest(".msg.agent .body");
+  if (!msgBody) { quoteBtn.style.display = "none"; return; }
+  const text = sel.toString().trim();
+  if (text.length < 4) { quoteBtn.style.display = "none"; return; }
+  const wrap = msgBody.closest(".msg");
+  if (!wrap || !wrap.dataset.nodeId) { quoteBtn.style.display = "none"; return; }
+  quoteCtx = { forkId: wrap.dataset.nodeId, text: text.slice(0, 80) };
+  quoteBtn.style.display = "block";
+  quoteBtn.style.left = e.clientX + 8 + "px";
+  quoteBtn.style.top = e.clientY - 34 + "px";
+});
+quoteBtn.onclick = () => {
+  quoteBtn.style.display = "none";
+  if (quoteCtx) openBranch(quoteCtx.forkId, quoteCtx.text);
+  window.getSelection().removeAllRanges();
+};
+
+/* ================= 预置主线 ================= */
+addMain("user", "帮我设计一套 Web 应用的鉴权方案，要求：支持多标签页同时使用、未来可能接入第三方客户端。");
+addMain("agent", "建议方案 A：JWT 双 token。\n\n- access token（15 分钟）放内存，接口鉴权；\n- refresh token（7 天）做轮换，每次使用即作废旧 token；\n- 登出时服务端加入吊销列表。\n\n理由：无状态、易扩展，第三方客户端直接走 OAuth2 发 token 即可。主要风险点是 refresh token 的存储与轮换策略。");
+addMain("user", "大方向可以。但我有几个细节想抠一下，先把框架定下来再逐条过。");
+renderFlow(); renderTree(); renderLedger();
+</script>
+</body>
+</html>

@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>支流 Tributary · 画布版原型</title>
+<style>
+  :root {
+    --bg: #14151a;
+    --panel: #1d1f27;
+    --elev: #262933;
+    --stroke: #34373f;
+    --text: #e7e8ec;
+    --text2: #9a9daa;
+    --text3: #6b6e7c;
+    --accent: #5b8def;
+    --accent-soft: rgba(91,141,239,.16);
+    --merge: #4caf7d;
+    --merge-soft: rgba(76,175,125,.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text); overflow: hidden;
+    font: 13px/1.6 -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    user-select: none;
+  }
+
+  /* ---------- 工具栏 ---------- */
+  #toolbar {
+    position: fixed; top: 12px; left: 12px; z-index: 100;
+    background: var(--panel); border: 1px solid var(--stroke); border-radius: 10px;
+    padding: 8px 14px; display: flex; align-items: center; gap: 12px;
+  }
+  #toolbar .brand { font-weight: 700; font-size: 14px; }
+  #toolbar .brand span { color: var(--text3); font-weight: 400; font-size: 11px; margin-left: 6px; }
+  #toolbar button {
+    background: var(--elev); color: var(--text2); border: 1px solid var(--stroke);
+    border-radius: 7px; padding: 4px 10px; font-size: 12px; cursor: pointer;
+  }
+  #toolbar button:hover { color: var(--text); border-color: var(--accent); }
+  #zoomLabel { font-size: 11.5px; color: var(--text3); min-width: 38px; text-align: center; }
+  #ledgerBtn { position: relative; }
+  #ledgerCount {
+    position: absolute; top: -7px; right: -7px; background: var(--merge); color: #fff;
+    font-size: 10px; border-radius: 8px; padding: 0 5px; display: none;
+  }
+  #hint {
+    position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 100;
+    background: var(--panel); border: 1px solid var(--stroke); border-radius: 8px;
+    padding: 6px 16px; font-size: 11.5px; color: var(--text3); white-space: nowrap;
+  }
+  #hint b { color: var(--accent); font-weight: 600; }
+
+  /* ---------- 台账面板 ---------- */
+  #ledgerPanel {
+    position: fixed; top: 60px; left: 12px; z-index: 100; width: 280px;
+    background: var(--panel); border: 1px solid var(--stroke); border-radius: 10px;
+    padding: 12px; display: none; max-height: 50vh; overflow-y: auto;
+  }
+  #ledgerPanel h4 { font-size: 12px; color: var(--text3); margin-bottom: 8px; font-weight: 600; }
+  .ledger-item { border: 1px solid var(--stroke); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; cursor: pointer; background: var(--elev); }
+  .ledger-item:hover { border-color: var(--accent); }
+  .ledger-item .lt { color: var(--merge); font-size: 11px; margin-bottom: 2px; }
+
+  /* ---------- 画布 ---------- */
+  #viewport { position: absolute; inset: 0; overflow: hidden; cursor: grab; }
+  #viewport.panning { cursor: grabbing; }
+  #world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #world.smooth { transition: transform .35s ease; }
+  #edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+  #edges path { fill: none; }
+
+  /* ---------- 对话列 ---------- */
+  .col {
+    position: absolute; width: 330px; background: var(--panel);
+    border: 1px solid var(--stroke); border-radius: 12px;
+    display: flex; flex-direction: column;
+    animation: pop .25s ease;
+  }
+  @keyframes pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+  .col.main { border-color: rgba(91,141,239,.45); }
+  .col.dragging { opacity: .85; z-index: 20; }
+  .col.merge-target { border-color: var(--merge); box-shadow: 0 0 0 3px var(--merge-soft); }
+  .col.merged { opacity: .5; }
+  .col-head {
+    display: flex; align-items: center; gap: 8px; padding: 9px 12px;
+    border-bottom: 1px solid var(--stroke); cursor: grab; flex-shrink: 0;
+  }
+  .col-head:active { cursor: grabbing; }
+  .col-title { font-size: 12px; font-weight: 600; color: var(--text2); }
+  .col.main .col-title { color: var(--accent); }
+  .col-status { font-size: 10.5px; color: var(--text3); margin-left: auto; }
+  .col-body { padding: 12px; display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; }
+
+  .msg .role { font-size: 10.5px; color: var(--text3); margin-bottom: 3px; }
+  .msg .body { position: relative; white-space: pre-wrap; user-select: text; }
+  .msg.user .body {
+    background: var(--elev); border: 1px solid var(--stroke);
+    border-radius: 9px; padding: 7px 11px; display: inline-block; max-width: 96%;
+  }
+  .msg.agent { position: relative; }
+  .msg.agent .handle {
+    position: absolute; right: -8px; top: 2px; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--accent); cursor: crosshair;
+    opacity: 0; transition: opacity .15s; z-index: 5;
+  }
+  .msg.agent .handle::after {
+    content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--panel);
+  }
+  .msg.agent:hover .handle { opacity: 1; }
+  .msg .forktag { font-size: 10px; color: var(--accent); margin-top: 4px; font-style: italic; }
+
+  .col-input { display: flex; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--stroke); flex-shrink: 0; }
+  .col-input input {
+    flex: 1; background: var(--elev); border: 1px solid var(--stroke); border-radius: 7px;
+    color: var(--text); padding: 7px 10px; font-size: 12.5px; outline: none;
+  }
+  .col-input input:focus { border-color: var(--accent); }
+  .col-input button {
+    background: var(--accent); color: #fff; border: none; border-radius: 7px;
+    padding: 7px 12px; font-size: 12px; cursor: pointer;
+  }
+  .col-merged-tag {
+    margin: 0 12px 12px; font-size: 11.5px; color: var(--merge);
+    background: var(--merge-soft); border: 1px solid rgba(76,175,125,.35);
+    border-radius: 7px; padding: 6px 10px;
+  }
+  .typing { color: var(--text3); font-size: 11.5px; font-style: italic; }
+
+  /* fork 来源可见性 */
+  .col-fork {
+    padding: 5px 12px; font-size: 10.5px; color: var(--text3);
+    border-bottom: 1px solid var(--stroke); cursor: pointer;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0;
+  }
+  .col-fork:hover { color: var(--accent); }
+  .msg .role .idx { margin-left: 6px; font-weight: 400; }
+  .msg .body { border-radius: 6px; transition: box-shadow .25s; }
+  .msg.flash .body { box-shadow: 0 0 0 2px var(--accent); }
+  .col.flash-col { box-shadow: 0 0 0 2px var(--accent); }
+  .fork-badge {
+    position: absolute; right: -10px; top: 20px; z-index: 6;
+    font-size: 9.5px; color: #fff; background: var(--accent);
+    border-radius: 8px; padding: 1px 7px; cursor: pointer; white-space: nowrap;
+  }
+  .fork-badge:hover { filter: brightness(1.15); }
+
+  /* ---------- 合并卡 ---------- */
+  .merge-card {
+    border: 1px solid rgba(76,175,125,.4); background: var(--merge-soft);
+    border-radius: 9px; padding: 10px 12px; animation: pop .3s ease;
+  }
+  .merge-card .mh { font-size: 11px; color: var(--merge); font-weight: 600; margin-bottom: 5px; }
+  .merge-card .mc { font-size: 12.5px; white-space: pre-wrap; outline: none; border-radius: 5px; }
+  .merge-card .mc:focus { background: rgba(76,175,125,.08); }
+
+  /* ---------- 交互组件 ---------- */
+  .option-card { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .option-card .opt {
+    background: var(--elev); border: 1px solid var(--stroke); border-radius: 7px;
+    padding: 6px 11px; font-size: 11.5px; cursor: pointer; color: var(--text);
+  }
+  .option-card .opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .option-card .opt.picked { opacity: .55; pointer-events: none; }
+  .option-card .opt.sel { opacity: 1; border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
+  .matrix { margin-top: 4px; border: 1px solid var(--stroke); border-radius: 9px; overflow: hidden; }
+  .matrix table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .matrix th, .matrix td { padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--stroke); }
+  .matrix th { background: var(--elev); color: var(--text2); font-weight: 500; font-size: 10.5px; }
+  .matrix td:first-child, .matrix th:first-child { text-align: left; }
+  .matrix tr:last-child td { border-bottom: none; }
+  .matrix .win { color: var(--merge); font-weight: 700; }
+  .matrix .weights { padding: 8px 10px; background: var(--panel); border-top: 1px solid var(--stroke); display: flex; flex-direction: column; gap: 6px; }
+  .matrix .w-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text2); }
+  .matrix .w-row label { width: 48px; }
+  .matrix .w-row output { width: 18px; text-align: right; color: var(--text); }
+  .matrix input[type=range] { flex: 1; accent-color: var(--accent); height: 3px; }
+  .matrix .m-footer { padding: 8px 10px; background: var(--panel); border-top: 1px solid var(--stroke); display: flex; align-items: center; gap: 8px; }
+  .matrix .m-footer .score { font-size: 11px; flex: 1; }
+  .matrix .m-footer button {
+    background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 5px 10px; font-size: 11px; cursor: pointer;
+  }
+  .matrix .m-footer button:disabled { background: var(--elev); color: var(--text3); cursor: default; }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <div class="brand">支流<span>画布版原型</span></div>
+  <button id="fitBtn">全局视图</button>
+  <button id="focusMainBtn">聚焦主线</button>
+  <span id="zoomLabel">100%</span>
+  <button id="ledgerBtn">决策台账<span id="ledgerCount"></span></button>
+</div>
+<div id="ledgerPanel"><h4>决策台账 · 合并自动记录</h4><div id="ledgerList"></div></div>
+<div id="hint">从 Agent 回复右侧 <b>手柄</b> 拖出支线 · <b>拖列头</b>移动 · 拖支线列<b>到主线列上</b>松手即合并 · 滚轮平移 · <b>Ctrl/⌘+滚轮</b>缩放（触控板捏合）· 双击列头聚焦</div>
+<div id="viewport">
+  <div id="world">
+    <svg id="edges"></svg>
+    <div id="cols"></div>
+  </div>
+</div>
+
+<script>
+/* ================= 状态 ================= */
+const S = {
+  cols: {}, order: [], edges: [],
+  pan: { x: 40, y: 60 }, zoom: 1,
+  colSeq: 0, msgSeq: 0,
+};
+const COLW = 330, HEADH = 37;
+const viewport = document.getElementById("viewport");
+const world = document.getElementById("world");
+const colsBox = document.getElementById("cols");
+const edgesSvg = document.getElementById("edges");
+
+const newCol = (title, x, y, fork) => {
+  const id = "c" + (++S.colSeq);
+  S.cols[id] = { id, title, x, y, fork: fork || null, status: "active", msgs: [] };
+  S.order.push(id);
+  return S.cols[id];
+};
+const newMsg = (col, role, text, component) => {
+  const m = { id: "m" + (++S.msgSeq), role, text, component };
+  col.msgs.push(m);
+  return m;
+};
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+/* ================= 视图变换 ================= */
+function applyTransform(smooth) {
+  world.classList.toggle("smooth", !!smooth);
+  world.style.transform = `translate(${S.pan.x}px, ${S.pan.y}px) scale(${S.zoom})`;
+  document.getElementById("zoomLabel").textContent = Math.round(S.zoom * 100) + "%";
+  if (smooth) setTimeout(() => world.classList.remove("smooth"), 380);
+}
+function toWorld(clientX, clientY) {
+  const r = viewport.getBoundingClientRect();
+  return { x: (clientX - r.left - S.pan.x) / S.zoom, y: (clientY - r.top - S.pan.y) / S.zoom };
+}
+function focusCol(cid, zoom) {
+  const c = S.cols[cid];
+  const r = viewport.getBoundingClientRect();
+  S.zoom = zoom || 1;
+  S.pan.x = r.width / 2 - (c.x + COLW / 2) * S.zoom;
+  S.pan.y = r.height / 2 - (c.y + 200) * S.zoom;
+  applyTransform(true);
+}
+function fitAll() {
+  const cs = S.order.map(id => S.cols[id]);
+  if (!cs.length) return;
+  let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9;
+  for (const c of cs) {
+    const h = (c.el && c.el.offsetHeight) || 300;
+    x1 = Math.min(x1, c.x); y1 = Math.min(y1, c.y);
+    x2 = Math.max(x2, c.x + COLW); y2 = Math.max(y2, c.y + h);
+  }
+  const r = viewport.getBoundingClientRect();
+  const zx = (r.width - 160) / (x2 - x1), zy = (r.height - 160) / (y2 - y1);
+  S.zoom = Math.max(.3, Math.min(1, Math.min(zx, zy)));
+  S.pan.x = (r.width - (x2 - x1) * S.zoom) / 2 - x1 * S.zoom;
+  S.pan.y = (r.height - (y2 - y1) * S.zoom) / 2 - y1 * S.zoom;
+  applyTransform(true);
+}
+document.getElementById("fitBtn").onclick = fitAll;
+document.getElementById("focusMainBtn").onclick = () => focusCol("c1");
+
+/* 滚轮约定（对齐 Figma/Miro）：
+   - 普通滚轮 / 触控板双指滑动 → 平移（deltaX 也支持）
+   - Ctrl/⌘ + 滚轮 / 触控板捏合（浏览器报为 ctrlKey wheel）→ 以指针为锚缩放，按增量比例
+   - 指针在对话列上且列还能滚 → 列内滚动优先，滚到底后才接管为画布平移 */
+viewport.addEventListener("wheel", (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    const r = viewport.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const old = S.zoom;
+    const factor = Math.exp(-e.deltaY * 0.0018);   // 增量比例，触控板 pinch 也平滑
+    S.zoom = Math.max(.25, Math.min(2, old * factor));
+    S.pan.x = mx - (mx - S.pan.x) * (S.zoom / old);
+    S.pan.y = my - (my - S.pan.y) * (S.zoom / old);
+    applyTransform();
+    return;
+  }
+  // 列内滚动优先（仅当列还能往该方向滚时放行）
+  const body = e.target.closest && e.target.closest(".col-body");
+  if (body && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) {
+    const canDown = body.scrollTop + body.clientHeight < body.scrollHeight - 1;
+    const canUp = body.scrollTop > 0;
+    if ((e.deltaY > 0 && canDown) || (e.deltaY < 0 && canUp)) return; // 不拦截，列自己滚
+  }
+  e.preventDefault();
+  if (e.shiftKey) { S.pan.x -= e.deltaY; }          // Shift+滚轮 = 横向平移
+  else { S.pan.x -= e.deltaX; S.pan.y -= e.deltaY; }
+  applyTransform();
+}, { passive: false });
+
+/* ================= 渲染：列 ================= */
+function renderCol(c) {
+  const d = el("div", "col" + (c.fork ? "" : " main") + (c.status === "merged" ? " merged" : ""));
+  d.style.left = c.x + "px"; d.style.top = c.y + "px";
+  d.dataset.cid = c.id;
+  c.el = d;
+
+  const head = el("div", "col-head");
+  head.appendChild(el("span", "col-title", c.title));
+  head.appendChild(el("span", "col-status",
+    c.status === "merged" ? "已合并" : (c.fork ? "支线 · 进行中" : "主线")));
+  head.addEventListener("mousedown", (e) => startColDrag(e, c));
+  head.addEventListener("dblclick", () => focusCol(c.id));
+  d.appendChild(head);
+
+  if (c.fork) {
+    const src = S.cols[c.fork.col];
+    const srcMsg = src && src.msgs.find(m => m.id === c.fork.msg);
+    const idx = src ? src.msgs.filter(x => !x.isMerge).indexOf(srcMsg) + 1 : 0;
+    const bar = el("div", "col-fork",
+      "⤴ 自「" + (src ? src.title : "?") + "」#" + idx + " · " +
+      (srcMsg ? srcMsg.text.replace(/\n/g, " ").slice(0, 20) : "") + "…");
+    bar.title = "点击定位 fork 点（源消息将高亮）";
+    bar.onclick = (e) => { e.stopPropagation(); jumpToFork(c); };
+    d.appendChild(bar);
+  }
+
+  const body = el("div", "col-body");
+  body.addEventListener("scroll", renderEdges);
+  for (const m of c.msgs) body.appendChild(renderMsg(c, m));
+  d.appendChild(body);
+
+  if (c.status === "active") {
+    const inp = el("div", "col-input");
+    const input = document.createElement("input");
+    input.placeholder = c.fork ? "追问 / 质疑…（试试「多标签页竞态」「对比方案B」）" : "主线 · 输入消息…";
+    input.onkeydown = (e) => { if (e.key === "Enter" && input.value.trim()) colSend(c, input.value.trim()); };
+    input.addEventListener("mousedown", (e) => e.stopPropagation());
+    const btn = el("button", null, "发送");
+    btn.onclick = () => { if (input.value.trim()) colSend(c, input.value.trim()); };
+    inp.appendChild(input); inp.appendChild(btn);
+    d.appendChild(inp);
+  } else {
+    d.appendChild(el("div", "col-merged-tag", "✓ 已合并回主线 · 结论见主线合并卡"));
+  }
+  return d;
+}
+
+function renderMsg(c, m) {
+  const w = el("div", "msg " + m.role);
+  w.dataset.mid = m.id;
+  const idx = c.msgs.filter(x => !x.isMerge).indexOf(m) + 1;
+  const role = el("div", "role", m.role === "user" ? "你" : "Agent");
+  role.appendChild(el("span", "idx", "· #" + idx));
+  w.appendChild(role);
+  const body = el("div", "body");
+  body.textContent = m.text;
+  if (m.role === "agent" && c.status === "active") {
+    const h = el("div", "handle");
+    h.title = "拖出支线";
+    h.addEventListener("mousedown", (e) => startLink(e, c, m));
+    w.appendChild(h);
+  }
+  w.appendChild(body);
+  if (m.role === "agent") {
+    const outs = S.edges.filter(e => e.type === "branch" && e.fromCol === c.id && e.fromMsg === m.id);
+    if (outs.length > 0) {
+      const badge = el("div", "fork-badge", outs.length + " 支");
+      badge.title = outs.length + " 条支线从此切出 · 点击定位";
+      badge.addEventListener("mousedown", (e) => e.stopPropagation());
+      badge.onclick = (e) => {
+        e.stopPropagation();
+        for (const o of outs) {
+          const tc = S.cols[o.toCol];
+          if (tc && tc.el) {
+            tc.el.classList.add("flash-col");
+            setTimeout(() => tc.el && tc.el.classList.remove("flash-col"), 1600);
+          }
+        }
+        setActiveLink(outs[outs.length - 1].toCol);
+      };
+      w.appendChild(badge);
+    }
+  }
+  if (m.forkQuote) w.appendChild(el("div", "forktag", "引用：「" + m.forkQuote + "」"));
+  if (m.component === "options") w.appendChild(renderOptions(c, m));
+  if (m.component === "matrix") w.appendChild(renderMatrix(c, m));
+  return w;
+}
+
+function renderAll() {
+  colsBox.innerHTML = "";
+  for (const id of S.order) {
+    const c = S.cols[id];
+    const d = renderCol(c);
+    colsBox.appendChild(d);
+  }
+  requestAnimationFrame(renderEdges);
+}
+
+/* ================= 渲染：边 ================= */
+function anchorOfMsg(col, mid) {
+  const d = col.el && col.el.querySelector(`[data-mid="${mid}"]`);
+  if (!d) return { x: col.x + COLW, y: col.y + 80 };
+  const body = col.el.querySelector(".col-body");
+  // 锚点钉死在消息的视觉位置上：列内滚动时线随消息走（滚出视野则被列遮住），只有 pan/zoom 时整体动
+  const rel = d.offsetTop + d.offsetHeight / 2 - (body ? body.scrollTop : 0);
+  return { x: col.x + COLW, y: col.y + rel };
+}
+function anchorOfColTop(col) { return { x: col.x + COLW / 2, y: col.y }; }
+function anchorOfColLeft(col) { return { x: col.x, y: col.y + HEADH + 60 }; }
+
+function bezier(a, b) {
+  const dx = Math.max(50, Math.abs(b.x - a.x) * .45);
+  return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+}
+let activeLink = null;
+function renderEdges() {
+  edgesSvg.innerHTML = "";
+  for (const e of S.edges) {
+    const fromC = S.cols[e.fromCol], toC = S.cols[e.toCol];
+    if (!fromC || !toC) continue;
+    const related = activeLink &&
+      ((e.type === "branch" && e.toCol === activeLink) ||
+       (e.type === "merge" && (e.fromCol === activeLink || e.toCol === activeLink)));
+    const a = e.type === "merge" ? anchorOfColLeft(fromC) : anchorOfMsg(fromC, e.fromMsg);
+    const b = anchorOfColTop(toC);
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", bezier(a, b));
+    p.setAttribute("stroke", e.type === "merge" ? "var(--merge)" : "var(--accent)");
+    p.setAttribute("stroke-width", related ? 3 : (e.type === "merge" ? 2.4 : 1.4));
+    p.setAttribute("opacity", activeLink ? (related ? "1" : ".15") : "1");
+    if (e.type !== "merge") p.setAttribute("stroke-dasharray", "6 5");
+    edgesSvg.appendChild(p);
+    // 箭头
+    const tri = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const s = 6;
+    tri.setAttribute("d", `M ${b.x - s} ${b.y - s * .7} L ${b.x} ${b.y} L ${b.x - s} ${b.y + s * .7} Z`);
+    tri.setAttribute("fill", e.type === "merge" ? "var(--merge)" : "var(--accent)");
+    tri.setAttribute("opacity", activeLink ? (related ? "1" : ".15") : "1");
+    edgesSvg.appendChild(tri);
+  }
+}
+
+/* 点列头（非拖动）：高亮本列相关的连线，fork 源消息滚入视野并闪烁 */
+function setActiveLink(cid) {
+  activeLink = cid;
+  renderEdges();
+  document.querySelectorAll(".msg.flash").forEach(x => x.classList.remove("flash"));
+  const c = S.cols[cid];
+  if (c && c.fork) {
+    const src = S.cols[c.fork.col];
+    const d = src && src.el && src.el.querySelector(`[data-mid="${c.fork.msg}"]`);
+    if (d) {
+      const body = src.el.querySelector(".col-body");
+      body.scrollTop = d.offsetTop - HEADH - 30;
+      d.classList.add("flash");
+      setTimeout(() => d.classList.remove("flash"), 1800);
+      renderEdges();
+    }
+  }
+}
+
+/* 从 fork 信息条跳回 fork 点 */
+function jumpToFork(c) {
+  const src = c.fork && S.cols[c.fork.col];
+  if (!src) return;
+  focusCol(src.id, S.zoom);
+  setTimeout(() => {
+    const d = src.el && src.el.querySelector(`[data-mid="${c.fork.msg}"]`);
+    if (d) {
+      const body = src.el.querySelector(".col-body");
+      body.scrollTop = d.offsetTop - HEADH - 30;
+      d.classList.add("flash");
+      setTimeout(() => d.classList.remove("flash"), 1800);
+      renderEdges();
+    }
+  }, 380);
+}
+
+/* ================= 交互：平移 ================= */
+let drag = null;
+viewport.addEventListener("mousedown", (e) => {
+  if (e.target !== viewport && e.target !== world && e.target !== colsBox && e.target !== edgesSvg) return;
+  activeLink = null; renderEdges();
+  drag = { mode: "pan", sx: e.clientX, sy: e.clientY, px: S.pan.x, py: S.pan.y };
+  viewport.classList.add("panning");
+});
+
+/* ================= 交互：拖线开支线 ================= */
+let link = null, linkLine = null;
+function startLink(e, col, msg) {
+  e.stopPropagation(); e.preventDefault();
+  link = { fromCol: col, fromMsg: msg };
+  linkLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  linkLine.setAttribute("stroke", "var(--accent)");
+  linkLine.setAttribute("stroke-width", "1.6");
+  linkLine.setAttribute("stroke-dasharray", "5 5");
+  edgesSvg.appendChild(linkLine);
+}
+
+/* ================= 交互：拖列 / 合并 ================= */
+function startColDrag(e, col) {
+  e.stopPropagation(); e.preventDefault();
+  const w = toWorld(e.clientX, e.clientY);
+  drag = { mode: "col", col, dx: w.x - col.x, dy: w.y - col.y, sx: w.x, sy: w.y, moved: false };
+  col.el.classList.add("dragging");
+}
+function colAtPoint(w) {
+  for (let i = S.order.length - 1; i >= 0; i--) {
+    const c = S.cols[S.order[i]];
+    const h = (c.el && c.el.offsetHeight) || 300;
+    if (w.x >= c.x && w.x <= c.x + COLW && w.y >= c.y && w.y <= c.y + h) return c;
+  }
+  return null;
+}
+
+function tryMerge(branchCol, targetCol) {
+  if (!targetCol || targetCol.id === branchCol.id) return false;
+  if (targetCol.fork) return false;               // 只演示合并回主线
+  if (branchCol.status !== "active") return false;
+  if (branchCol.msgs.filter(m => m.role === "user").length === 0) {
+    flashCol(branchCol, "支线还没有讨论内容，无法合并");
+    return false;
+  }
+  // 生成合并卡
+  const g = guessMerge(branchCol);
+  const card = newMsg(targetCol, "agent", "", null);
+  card.isMerge = true; card.branchTitle = branchCol.title;
+  card.text = `结论：${g.conclusion}\n弃案：${g.rejected}\n待办：${g.todo}`;
+  branchCol.status = "merged";
+  S.edges.push({ fromCol: branchCol.id, toCol: targetCol.id, type: "merge" });
+  S.ledger.push({ col: targetCol.id, mid: card.id, title: branchCol.title, text: g.conclusion });
+  renderAll(); renderLedger();
+  // 主线 Agent 接话 + 选项卡
+  setTimeout(() => {
+    newMsg(targetCol, "agent",
+      "已把「" + branchCol.title + "」的结论并入主线上下文（支线 30 轮讨论不会污染主线）。\n\n基于 A′ 的实现计划草案：\n1) JWT (RS256)，access token 15 分钟；\n2) 滑动轮换 + 10s 宽限窗；\n3) BroadcastChannel 多标签同步；\n4) 吊销列表 + 全标签登出。\n\n接下来先落地哪一块？", "options");
+    renderAll();
+  }, 650);
+  return true;
+}
+function flashCol(c, msg) {
+  const old = c.title; c.title = msg;
+  renderAll();
+  setTimeout(() => { c.title = old; renderAll(); }, 1600);
+}
+
+/* ================= 全局 mousemove / mouseup ================= */
+document.addEventListener("mousemove", (e) => {
+  if (link) {
+    const w = toWorld(e.clientX, e.clientY);
+    const a = anchorOfMsg(link.fromCol, link.fromMsg.id);
+    linkLine.setAttribute("d", bezier(a, w));
+    return;
+  }
+  if (!drag) return;
+  if (drag.mode === "pan") {
+    S.pan.x = drag.px + (e.clientX - drag.sx);
+    S.pan.y = drag.py + (e.clientY - drag.sy);
+    applyTransform();
+  } else if (drag.mode === "col") {
+    const w = toWorld(e.clientX, e.clientY);
+    if (!drag.moved && Math.abs(w.x - drag.sx) + Math.abs(w.y - drag.sy) < 4) return;
+    drag.moved = true;
+    drag.col.x = w.x - drag.dx;
+    drag.col.y = w.y - drag.dy;
+    drag.col.el.style.left = drag.col.x + "px";
+    drag.col.el.style.top = drag.col.y + "px";
+    // 合并目标高亮
+    const t = colAtPoint(w);
+    for (const id of S.order) S.cols[id].el && S.cols[id].el.classList.remove("merge-target");
+    if (t && t.id !== drag.col.id && !t.fork && drag.col.fork && drag.col.status === "active")
+      t.el.classList.add("merge-target");
+    renderEdges();
+  }
+});
+document.addEventListener("mouseup", (e) => {
+  if (link) {
+    const w = toWorld(e.clientX, e.clientY);
+    const target = colAtPoint(w);
+    if (!target) {
+      // 松手在空白 → 在此创建支线列
+      const bc = newCol("支线 " + "①②③④⑤⑥"[S.colSeq - 1] || ("#" + S.colSeq), w.x - COLW / 2, w.y - 20, { col: link.fromCol.id, msg: link.fromMsg.id });
+      S.edges.push({ fromCol: link.fromCol.id, fromMsg: link.fromMsg.id, toCol: bc.id, type: "branch" });
+      const quote = link.fromMsg.text.length > 60 ? link.fromMsg.text.slice(0, 60) + "…" : null;
+      newMsg(bc, "agent",
+        "已从主线开出" + bc.title + "（fork 上下文至该回复）。这里的讨论独立演进，聊完把本列拖回主线列即可合并。" +
+        (quote ? "\n\n你分叉自这段话：「" + quote + "」" : ""));
+      renderAll();
+      setTimeout(() => {
+        const inp = bc.el && bc.el.querySelector("input");
+        if (inp) inp.focus();
+      }, 80);
+    }
+    linkLine && linkLine.remove();
+    link = null; linkLine = null;
+    return;
+  }
+  if (drag && drag.mode === "col") {
+    const wasClick = !drag.moved;
+    const w = toWorld(e.clientX, e.clientY);
+    const t = colAtPoint(w);
+    drag.col.el.classList.remove("dragging");
+    for (const id of S.order) S.cols[id].el && S.cols[id].el.classList.remove("merge-target");
+    if (wasClick) {
+      setActiveLink(drag.col.id);   // 点列头：高亮本列的血缘关系
+      drag = null;
+      return;
+    }
+    if (t && drag.col.fork) {
+      if (tryMerge(drag.col, t)) { drag = null; return; }
+    }
+    renderAll(); // 落定后重绘（清理高亮、更新边）
+  }
+  drag = null;
+  viewport.classList.remove("panning");
+});
+
+/* ================= Mock Agent ================= */
+const RACE_RE = /(竞态|标签|轮换|刷新|token|并发)/i;
+const CMP_RE = /(对比|比较|方案 ?b|session|cookie|备选|另一个)/i;
+function colSend(c, text) {
+  newMsg(c, "user", text);
+  renderAll();
+  const bodyEl = c.el.querySelector(".col-body");
+  const t = el("div", "typing", "Agent 正在输入…");
+  bodyEl.appendChild(t);
+  bodyEl.scrollTop = bodyEl.scrollHeight;
+  setTimeout(() => {
+    if (!c.fork) {
+      newMsg(c, "agent",
+        "收到。建议：直接追问会混入主线上下文。更好的做法——从我某条回复右侧的圆点拖出一条线，在空白处松手开出支线，质疑在支线里聊，聊完把支线列拖回我身上即可合并。");
+    } else if (CMP_RE.test(text)) {
+      newMsg(c, "agent",
+        "来结构化对比。这张评分矩阵可以直接调权重——拖滑杆，加权总分实时变化，调好点「采用此结论」：", "matrix");
+    } else if (RACE_RE.test(text)) {
+      newMsg(c, "agent",
+        "好问题，这正是方案 A 的已知坑：多标签页共享同一 refresh token 时，两个标签可能同时发起轮换——旧 token 一旦失效，后到的请求会被踢下线。\n\n两个可叠加的修法：\n1) 滑动轮换：旧 token 保留约 10s 宽限期；\n2) 广播失效：BroadcastChannel 指定一个标签页主导刷新，再广播新 token。\n\n修正后记为 A′（JWT + 滑动轮换 + 广播失效）。");
+    } else {
+      newMsg(c, "agent",
+        "收到。这条支线独立演进，主线不受影响。聊透之后，把本列拖回主线列松手，我会把结论生成合并卡（可编辑）插回主线。\n\n（演示提示：输入「多标签页竞态」或「对比一下方案 B」）");
+    }
+    renderAll();
+    const b2 = c.el && c.el.querySelector(".col-body");
+    if (b2) b2.scrollTop = b2.scrollHeight;
+  }, 700);
+}
+
+function guessMerge(c) {
+  const all = c.msgs.map(m => m.text).join("\n");
+  if (/A′/.test(all) && /加权|矩阵|选定/.test(all))
+    return { conclusion: "经评分矩阵加权对比，采用 A′（JWT + 滑动轮换 + 广播失效）。", rejected: "方案 B（Session+Cookie）：跨域扩展性不足。", todo: "保留权重假设（安全>扩展>成本）备查。" };
+  if (/A′/.test(all))
+    return { conclusion: "方案 A 修正为 A′：JWT + 滑动轮换（10s 宽限）+ 广播失效，解决多标签页竞态。", rejected: "无。", todo: "落地轮换与广播逻辑；补并发测试。" };
+  const lastUser = c.msgs.filter(m => m.role === "user").slice(-1)[0];
+  return { conclusion: (lastUser ? lastUser.text : "（编辑此结论）"), rejected: "（可选）", todo: "（可选）" };
+}
+
+/* ================= 组件：选项卡 ================= */
+function renderOptions(c, m) {
+  const card = el("div", "option-card");
+  for (const o of ["先落地 Token 轮换", "先写登录/登出流程", "先补威胁模型", "我自己说"]) {
+    const btn = el("button", "opt" + (m.picked ? " picked" : "") + (m.picked === o ? " sel" : ""), o);
+    btn.onclick = () => {
+      if (m.picked) return;
+      m.picked = o;
+      if (!o.startsWith("我自己")) colSend(c, o);
+      else renderAll();
+      if (!o.startsWith("我自己")) return;
+    };
+    card.appendChild(btn);
+  }
+  return card;
+}
+
+/* ================= 组件：评分矩阵 ================= */
+function renderMatrix(c, m) {
+  const dims = ["安全性", "实现成本", "扩展性"];
+  const scores = { "A′ JWT滑动轮换": [9, 6, 8], "B Session+Cookie": [8, 8, 5] };
+  const weights = [7, 5, 6];
+  const box = el("div", "matrix");
+  const table = document.createElement("table");
+  const scoreLine = el("span", "score");
+  const adopt = el("button", null, m.adopted ? "已采用 ✓" : "采用此结论");
+  adopt.disabled = !!m.adopted;
+
+  function calc() {
+    const tw = weights.reduce((a, b) => a + b, 0), out = {};
+    for (const k of Object.keys(scores))
+      out[k] = scores[k].reduce((a, s, i) => a + s * weights[i], 0) / tw;
+    return out;
+  }
+  function redraw() {
+    const res = calc(), keys = Object.keys(scores);
+    const win = res[keys[0]] >= res[keys[1]] ? keys[0] : keys[1];
+    const lose = keys.find(k => k !== win);
+    table.innerHTML = "";
+    const trh = document.createElement("tr");
+    trh.innerHTML = "<th>方案</th>" + dims.map((d, i) => `<th>${d}·${weights[i]}</th>`).join("") + "<th>加权</th>";
+    table.appendChild(trh);
+    for (const k of keys) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${k}</td>` + scores[k].map(s => `<td>${s}</td>`).join("") +
+        `<td class="${k === win ? "win" : ""}">${res[k].toFixed(1)}</td>`;
+      table.appendChild(tr);
+    }
+    scoreLine.textContent = `${win} 胜出（${res[win].toFixed(1)} vs ${res[lose].toFixed(1)}）`;
+    scoreLine.dataset.win = win; scoreLine.dataset.score = res[win].toFixed(1);
+  }
+  box.appendChild(table);
+  const wbox = el("div", "weights");
+  dims.forEach((d, i) => {
+    const row = el("div", "w-row");
+    const label = document.createElement("label"); label.textContent = d;
+    const range = document.createElement("input");
+    range.type = "range"; range.min = 0; range.max = 10; range.value = weights[i];
+    range.addEventListener("mousedown", (e) => e.stopPropagation());
+    const out = document.createElement("output"); out.textContent = weights[i];
+    range.oninput = () => { weights[i] = +range.value; out.textContent = range.value; redraw(); };
+    row.appendChild(label); row.appendChild(range); row.appendChild(out);
+    wbox.appendChild(row);
+  });
+  box.appendChild(wbox);
+  const footer = el("div", "m-footer");
+  adopt.onclick = () => {
+    if (m.adopted) return;
+    m.adopted = true; adopt.disabled = true; adopt.textContent = "已采用 ✓";
+    newMsg(c, "user", `我按权重对比后选定 ${scoreLine.dataset.win}（加权 ${scoreLine.dataset.score}）`);
+    renderAll();
+    setTimeout(() => {
+      newMsg(c, "agent", "已记录为结构化事件（方案、权重、总分有据可查）。把本列拖回主线列，我会以「" + scoreLine.dataset.win + "」作为本支线结论生成合并卡。");
+      renderAll();
+    }, 550);
+  };
+  footer.appendChild(scoreLine); footer.appendChild(adopt);
+  box.appendChild(footer);
+  redraw();
+  return box;
+}
+
+/* ================= 合并卡渲染（消息级） ================= */
+const origRenderMsg = renderMsg;
+renderMsg = function (c, m) {
+  if (!m.isMerge) return origRenderMsg(c, m);
+  const w = el("div", "merge-card");
+  w.dataset.mid = m.id;
+  w.appendChild(el("div", "mh", "⇤ 合并自 " + m.branchTitle + " · 点击内容可编辑"));
+  const mc = el("div", "mc", m.text);
+  mc.contentEditable = "true";
+  mc.addEventListener("mousedown", (e) => e.stopPropagation());
+  mc.onblur = () => { m.text = mc.textContent; };
+  w.appendChild(mc);
+  return w;
+};
+
+/* ================= 台账 ================= */
+S.ledger = [];
+function renderLedger() {
+  const n = S.ledger.length;
+  const badge = document.getElementById("ledgerCount");
+  badge.style.display = n ? "block" : "none";
+  badge.textContent = n;
+  const list = document.getElementById("ledgerList");
+  list.innerHTML = "";
+  for (const l of S.ledger) {
+    const item = el("div", "ledger-item");
+    item.appendChild(el("div", "lt", "✓ " + l.title + " · 已合并"));
+    item.appendChild(el("div", null, l.text.slice(0, 40) + (l.text.length > 40 ? "…" : "")));
+    item.onclick = () => { focusCol(l.col); };
+    list.appendChild(item);
+  }
+  if (!n) list.appendChild(el("div", "lt", "合并支线后自动记录"));
+}
+document.getElementById("ledgerBtn").onclick = () => {
+  const p = document.getElementById("ledgerPanel");
+  p.style.display = p.style.display === "block" ? "none" : "block";
+};
+
+/* ================= 预置主线 ================= */
+const main = newCol("主线 · 鉴权方案", 60, 90, null);
+newMsg(main, "user", "帮我设计一套 Web 应用的鉴权方案，要求：支持多标签页同时使用、未来可能接入第三方客户端。");
+newMsg(main, "agent", "建议方案 A：JWT 双 token。\n\n- access token（15 分钟）放内存，接口鉴权；\n- refresh token（7 天）做轮换，每次使用即作废旧 token；\n- 登出时服务端加入吊销列表。\n\n理由：无状态、易扩展，第三方客户端直接走 OAuth2 发 token 即可。主要风险点在 refresh token 的存储与轮换策略。");
+newMsg(main, "user", "大方向可以。几个细节我想抠一下。");
+renderAll(); renderLedger(); applyTransform();
+</script>
+</body>
+</html>

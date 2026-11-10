@@ -8,7 +8,7 @@
 
 ## 0. 一句话
 
-**把 `shell/index.html`（1600 行演示）重写为 monorepo 工程：对象化数据模型 + DAG 工作流 + 形态查看器 + 三视图壳，事件账本贯穿，harness 留桩。**
+**把 `demo/shell/index.html`（1600 行演示）重写为 monorepo 工程：对象化数据模型 + DAG 工作流 + 形态查看器 + 三视图壳，事件账本贯穿，harness 留桩。**
 
 演示已验证的完整链路（本文的设计基线）：
 
@@ -25,10 +25,10 @@
 | # | 决定 | 内容 |
 |---|---|---|
 | D1 | **数据模型对象化** | 步骤从 9 槽元组改为对象（§2）。位置元组的 null 占位是本轮全部下标 bug 的根源，schema 定死，zod 校验 |
-| D2 | **演示退役策略** | `shell/index.html` 与 `journey.html` 保留为参考演示，直到工程版跑通 M1 主链后移 `demo/`；不再新增演示功能，一切新能力进工程 |
+| D2 | **演示退役策略** | `demo/shell/index.html` 与 `demo/shell/journey.html` 保留为参考演示（M1 主链跑通后已移入 `demo/`）；不再新增演示功能，一切新能力进工程 |
 | D3 | **状态 = store + 事件账本** | 一切 mutation 走 store 动作；每个动作落一条 `LedgerEvent`——账本不是额外功能，是状态的副产品（审计免费获得） |
 | D4 | **harness 留桩** | Agent 执行在 P0 是确定性 mock（定时器推进步骤、产出 fixture 产物）；`packages/harness` 定义接口，P2 换真模型 |
-| D5 | **可视化词汇沿用** | 钢灰 tokens、状态五色 + 文字标签、七段计数、方角铁则（`shell/DESIGN.md` 为视觉正典，迁 `packages/ui`） |
+| D5 | **可视化词汇沿用** | 钢灰 tokens、状态五色 + 文字标签、七段计数、方角铁则（`demo/shell/DESIGN.md` 为视觉正典，迁 `packages/ui`） |
 | D6 | **单用户本地优先** | 无后端、无协作；IndexedDB 持久化（P1），导出 `.json`（P0） |
 | D7 | **审批门不可绕过** | 派任务必须停在用人审批；一切 Agent 副作用经 gate 或收件箱——架构铁律「人写直通，Agent 写必经门」 |
 
@@ -157,7 +157,7 @@ wuji/
 ├── pnpm-workspace.yaml
 ├── package.json                 # 根：scripts（dev/build/check），不装业务依赖
 ├── tsconfig.base.json           # 严格模式 + project references 基座
-├── ARCHITECTURE.md …            # 正典文档（原位不动）
+├── docs/                        # 正典文档（PRODUCT / BLUEPRINT / ARCHITECTURE / INTERFACE / ENGINEERING …）
 │
 ├── apps/
 │   └── web/                     # 应用壳（React 18 + Vite + TS）
@@ -165,7 +165,7 @@ wuji/
 │           ├── main.tsx         # 入口
 │           ├── App.tsx          # 视图装配：工作台/任务/Agent + 详情路由
 │           ├── routes/          # 每视图一个薄装配文件（组合 packages 组件）
-│           └── styles/          # tokens.css（从 shell/DESIGN.md 提炼）+ 全局
+│           └── styles/          # tokens.css（从 demo/shell/DESIGN.md 提炼）+ 全局
 │
 ├── packages/
 │   ├── model/                   # ★ 零依赖领域模型：类型 + zod schema + fixture 校验
@@ -183,7 +183,7 @@ wuji/
 │
 ├── fixtures/                    # 演示数据 → zod 校验后的 JSON（tasks/agents/artifacts/inbox/ledger）
 │
-└── demo/                        # M1 验收后移入：shell/index.html、journey.html（冻结不再改）
+└── demo/                        # 演示面（M1 后已移入）：shell/ + opc-console/ + opc-console-v2/（冻结不再改）
 ```
 
 **依赖方向（只许向下）**：`web → {store, ui, workflow, viewers, model}`；`workflow/viewers/store → {ui, model}`；`model` 零依赖。禁止反向 import、禁止跨同级包 import（都经 model 类型协作）。

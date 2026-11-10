@@ -16,7 +16,7 @@ For a quick local preview, you can also open `index.html` directly.
 ## Current prototype capabilities
 
 - Infinite panning and zooming.
-- **Eight node kinds**, each with its own interaction surface — see [`NODES.md`](../NODES.md):
+- **Eight node kinds**, each with its own interaction surface — see [`NODES.md`](docs/NODES.md):
   - **Intent** — goal plus editable constraints.
   - **Note** — free text, the fallback shape.
   - **Trace** — agent steps you can open, inspect, and read the evidence behind.
@@ -35,15 +35,15 @@ The seeded field walks one full chain: Intent → Trace → Evidence ×3 → Tab
 
 ## Product references
 
-- [`PRODUCT.md`](../PRODUCT.md)
-- [`DESIGN.md`](../DESIGN.md)
-- [`BLUEPRINT.md`](../BLUEPRINT.md) — V2 总体方案蓝图（体·相·用架构、卷/野/谱视图、路线图）
-- [`ARCHITECTURE.md`](../ARCHITECTURE.md) — 系统架构：能力与资源 / harness / Agent 编制池 / 工作台，四层三横切面
-- [`INTERFACE.md`](../INTERFACE.md) — 交互形态：一坊一桌一账一栏，壳与台的形制
+- [`PRODUCT.md`](docs/PRODUCT.md)
+- [`DESIGN.md`](docs/DESIGN.md)
+- [`BLUEPRINT.md`](docs/BLUEPRINT.md) — V2 总体方案蓝图（体·相·用架构、卷/野/谱视图、路线图）
+- [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 系统架构：能力与资源 / harness / Agent 编制池 / 工作台，四层三横切面
+- [`INTERFACE.md`](docs/INTERFACE.md) — 交互形态：一坊一桌一账一栏，壳与台的形制
 
 ## Engineering (M0+)
 
-The buildable spec lives in [`ENGINEERING.md`](ENGINEERING.md) — data model, monorepo layout, milestones. Demo surfaces in `shell/` stay frozen until the engineering build reaches M1 parity.
+The buildable spec lives in [`ENGINEERING.md`](docs/ENGINEERING.md) — data model, monorepo layout, milestones. Demo surfaces in `demo/` stay frozen (retired after M1 parity per its D2 decision).
 
 ```bash
 pnpm install

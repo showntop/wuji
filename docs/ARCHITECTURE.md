@@ -157,7 +157,7 @@ H2 调度器：M-05 判据到期事件
 | 现有资产 | 去向 |
 |---|---|
 | BLUEPRINT 的 WDoc / op log / 三注册表 | L4 `workbench-kit`：体引擎 + 收件箱内建；体相用升格为台的形制 |
-| opc-console（含其数据模型） | L4 第一台：OPC 工作台；模型按优化清单升级（关系统一、时间序列带标签等） |
+| demo/opc-console（含其数据模型） | L4 第一台：OPC 工作台；模型按优化清单升级（关系统一、时间序列带标签等） |
 | prototype/（画布原型） | 探索期遗物，按 BLUEPRINT 原计划 P2 后退役 |
 | OPC 的失败库（lib） | L1 知识库的第一个库 |
 | workbuddy / serena 记忆 | L1 记忆域的雏形，收敛为统一记忆接口 |

@@ -155,7 +155,7 @@ components:
 
 # Design System: 无极 · 钢灰工坊（壳皮）
 
-> 世界边界：本文件记录**钢灰工坊**（安灯车间）世界，适用于系统壳及其一切壳皮表面（任务台、工单桌、总账等）与共用原子件（工单票、审批卡、事件流条目），正典实现为 `opc-console/` 与 `shell/`。根 `DESIGN.md` 记录的是活文档台的**夜观星台**世界（INTERFACE.md §7「壳用钢灰工坊皮，台内各留其皮」），两套皮相并存、互不改写。
+> 世界边界：本文件记录**钢灰工坊**（安灯车间）世界，适用于系统壳及其一切壳皮表面（任务台、工单桌、总账等）与共用原子件（工单票、审批卡、事件流条目），正典实现为 `demo/opc-console/` 与 `demo/shell/`。`docs/DESIGN.md` 记录的是活文档台的**夜观星台**世界（docs/INTERFACE.md §7「壳用钢灰工坊皮，台内各留其皮」），两套皮相并存、互不改写。
 
 ## Overview
 
@@ -288,7 +288,7 @@ Barlow Condensed 700 的两字母钢片徽记；**我的徽记反白为呼叫琥
 - **Shape:** 全方角（0），Barlow Condensed 600。
 - **Ghost（.btn）:** `{colors.floor-2}` 底 + `{colors.line-2}` 描边；hover 升 `{colors.steel}`、描边提亮；active 下压 1px。键位胶囊（.kbd）内嵌。ghost 透明底变体用于消极动作（拒绝）。
 - **Go（.btn.go · 批准键）:** 在跑绿实底 + `{colors.go-ink}` 字、描边同色，hover 提亮 `#5be38a`。批准召唤专用——「批准即开工」；常规以 .btn.sm 尺寸出现。
-- **Call（.call-btn）:** 呼叫琥珀底 + `{colors.call-ink}` 字，DSEG7 计数，深投影，hover 抬 1px。键内 10px 信标圆点慢脉冲（beacon 2.6s，50% 谷值 opacity .4）——决策级打扰的等待语言，比灯的闪烁安静一档。清空态降为钢灰（opc-console 正典）。
+- **Call（.call-btn）:** 呼叫琥珀底 + `{colors.call-ink}` 字，DSEG7 计数，深投影，hover 抬 1px。键内 10px 信标圆点慢脉冲（beacon 2.6s，50% 谷值 opacity .4）——决策级打扰的等待语言，比灯的闪烁安静一档。清空态降为钢灰（demo/opc-console 正典）。
 - **台签开关（.toggle）:** 钢面槽（`{colors.steel}`）内的方角分段；选中 `{colors.floor-3}` + 黑色小投影；台签右上角 5px 状态微灯（data-lamp）。
 - **召唤分段（问/书）与模式片（.wchip）:** 同开关语法；wchip 选中翻为钢板（plate 底 + plate-ink 字）。
 

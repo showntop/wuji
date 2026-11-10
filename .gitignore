@@ -5,3 +5,4 @@
 review/
 node_modules/
 dist/
+.cursor/
