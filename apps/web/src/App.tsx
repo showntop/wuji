@@ -107,7 +107,7 @@ export default function App() {
       )}
 
       {route === "task" && openTask
-        ? <TaskFlowView task={openTask} onBack={() => setRoute("tasks")} />
+        ? <TaskFlowView key={openTask.id} task={openTask} onBack={() => setRoute("tasks")} />
         : route === "agents" ? <AgentsView />
         : route === "tasks" ? <TasksView onOpen={openTaskFn} />
         : <HomeView onOpen={openTaskFn} />}
