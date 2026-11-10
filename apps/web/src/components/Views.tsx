@@ -3,7 +3,7 @@ import type { Task, Agent } from "@wuji/model";
 import { useStore } from "../store";
 import { useShell } from "../shellStore";
 import { Lamp, StatusTag, Mk } from "@wuji/ui/src/components";
-import { TaskFlowView } from "./TaskFlow";
+import { TaskFlowView } from "../routes/TaskDetail";
 
 const KIND_CN: Record<string, string> = { table: "表", doc: "稿", image: "图", note: "记" };
 
