@@ -1,29 +1,31 @@
 import { useEffect } from "react";
-import { useStore, initPersistence, startHarnessMock, resetPersisted } from "./store";
+import { useStore, initPersistence, resetPersisted } from "./store";
+import { useShell } from "./shellStore";
+import { startHarnessDriver } from "./harnessDriver";
 import { Views } from "./components/Views";
 import { Desk, LedgerPanel, Summon, ViewerOverlay } from "./components/Overlays";
 
 export default function App() {
-  const route = useStore((s) => s.route);
-  const setRoute = useStore((s) => s.setRoute);
-  const overlay = useStore((s) => s.overlay);
-  const viewer = useStore((s) => s.viewer);
+  const route = useShell((s) => s.route);
+  const setRoute = useShell((s) => s.setRoute);
+  const overlay = useShell((s) => s.overlay);
+  const viewer = useShell((s) => s.viewer);
   const inbox = useStore((s) => s.inbox);
   const tasks = useStore((s) => s.tasks);
   const agents = useStore((s) => s.agents);
 
   useEffect(() => {
     initPersistence();
-    startHarnessMock();
+    startHarnessDriver();
   }, []);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName ?? "")) return;
       if (e.metaKey || e.ctrlKey) return;
-      if (e.key === "Escape") { useStore.getState().setOverlay(null); useStore.getState().setViewer(null); }
-      if (e.key === "c" || e.key === "C") useStore.getState().setOverlay(overlay === "desk" ? null : "desk");
-      if (e.key === "l" || e.key === "L") useStore.getState().setOverlay(overlay === "ledger" ? null : "ledger");
+      if (e.key === "Escape") { useShell.getState().setOverlay(null); useShell.getState().setViewer(null); }
+      if (e.key === "c" || e.key === "C") useShell.getState().setOverlay(overlay === "desk" ? null : "desk");
+      if (e.key === "l" || e.key === "L") useShell.getState().setOverlay(overlay === "ledger" ? null : "ledger");
       if (e.key === "1") setRoute("home");
       if (e.key === "2") setRoute("tasks");
       if (e.key === "3") setRoute("agents");
@@ -73,7 +75,7 @@ export default function App() {
           <button className="btn" onClick={() => document.getElementById("summon-input")?.focus()}>
             <span className="kbd">⌘K</span>发起
           </button>
-          <button className={`inbox-btn${inbox.length ? "" : " clear"}`} onClick={() => useStore.getState().setOverlay(overlay === "desk" ? null : "desk")}>
+          <button className={`inbox-btn${inbox.length ? "" : " clear"}`} onClick={() => useShell.getState().setOverlay(overlay === "desk" ? null : "desk")}>
             <i className="beacon" /><span>待处理</span><span className="count">{inbox.length}</span>
           </button>
         </div>

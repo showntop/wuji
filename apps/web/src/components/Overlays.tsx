@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Agent, InboxItem } from "@wuji/model";
 import { useStore } from "../store";
+import { useShell } from "../shellStore";
 import { Mk } from "@wuji/ui/src/components";
 import { ArtifactView } from "@wuji/viewers/src/Viewer";
 
@@ -10,11 +11,11 @@ const KIND_CN: Record<string, string> = { decision: "决策", confirm: "确认",
 export function Desk() {
   const inbox = useStore((s) => s.inbox);
   const agents = useStore((s) => s.agents);
-  const overlay = useStore((s) => s.overlay);
-  const setOverlay = useStore((s) => s.setOverlay);
+  const overlay = useShell((s) => s.overlay);
+  const setOverlay = useShell((s) => s.setOverlay);
   const resolveInbox = useStore((s) => s.resolveInbox);
   const clearInbox = useStore((s) => s.clearInbox);
-  const openTask = (id: string) => { useStore.getState().openTaskId = id; useStore.getState().setRoute("task"); setOverlay(null); };
+  const openTask = useShell((s) => s.openTask);
   const on = overlay === "desk";
   const mins = inbox.reduce((a, i) => a + i.minutes, 0);
   const groups: [InboxItem["kind"], string, string][] = [
@@ -72,8 +73,8 @@ export function Desk() {
 type Lens = "events" | "rels" | "nums";
 export function LedgerPanel() {
   const ledger = useStore((s) => s.ledger);
-  const overlay = useStore((s) => s.overlay);
-  const setOverlay = useStore((s) => s.setOverlay);
+  const overlay = useShell((s) => s.overlay);
+  const setOverlay = useShell((s) => s.setOverlay);
   const tasks = useStore((s) => s.tasks);
   const agents = useStore((s) => s.agents);
   const [lens, setLens] = useState<Lens>("events");
@@ -161,7 +162,7 @@ export function Summon() {
   const [mode, setMode] = useState<"ask" | "dispatch">("ask");
   const [text, setText] = useState("");
   const dispatchTask = useStore((s) => s.dispatchTask);
-  const setRoute = useStore((s) => s.setRoute);
+  const setRoute = useShell((s) => s.setRoute);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -204,8 +205,8 @@ export function Summon() {
 
 /* ---------- 产物查看器（全局入口：列表形态片） ---------- */
 export function ViewerOverlay() {
-  const viewer = useStore((s) => s.viewer);
-  const setViewer = useStore((s) => s.setViewer);
+  const viewer = useShell((s) => s.viewer);
+  const setViewer = useShell((s) => s.setViewer);
   const artifacts = useStore((s) => s.artifacts);
   const tasks = useStore((s) => s.tasks);
   useEffect(() => {

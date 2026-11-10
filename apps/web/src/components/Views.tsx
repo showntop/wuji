@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Task, Agent } from "@wuji/model";
 import { useStore } from "../store";
+import { useShell } from "../shellStore";
 import { Lamp, StatusTag, Mk } from "@wuji/ui/src/components";
 import { TaskFlowView } from "./TaskFlow";
 
@@ -8,15 +9,15 @@ const KIND_CN: Record<string, string> = { table: "表", doc: "稿", image: "图"
 
 export function Views() {
   const tasks = useStore((s) => s.tasks);
-  const route = useStore((s) => s.route);
-  const openTaskId = useStore((s) => s.openTaskId);
-  const setRoute = useStore((s) => s.setRoute);
+  const route = useShell((s) => s.route);
+  const openTaskId = useShell((s) => s.openTaskId);
+  const setRoute = useShell((s) => s.setRoute);
   const openTask = tasks.find((t) => t.id === openTaskId);
 
   if (route === "task" && openTask) {
     return <TaskFlowView task={openTask} onBack={() => setRoute("tasks")} />;
   }
-  const onOpen = (id: string) => { useStore.getState().openTaskId = id; setRoute("task"); };
+  const onOpen = useShell((s) => s.openTask);
   if (route === "agents") return <AgentsView />;
   if (route === "tasks") return <TasksView onOpen={onOpen} />;
   return <HomeView onOpen={onOpen} />;
@@ -75,14 +76,14 @@ function HomeView({ onOpen }: { onOpen: (id: string) => void }) {
   const inbox = useStore((s) => s.inbox);
   const tasks = useStore((s) => s.tasks);
   const agents = useStore((s) => s.agents);
-  const setRoute = useStore((s) => s.setRoute);
+  const setRoute = useShell((s) => s.setRoute);
   const priority = inbox.filter((i) => i.kind !== "fyi");
   const live = tasks.filter((t) => t.status !== "done");
   return (
     <>
       <div className="sec-h"><h2>待我处理</h2><span className="count">{priority.length}</span>
         <span className="sec-note">决策优先 · 点开任务就地处理</span>
-        <button className="btn sm ghost more" onClick={() => useStore.getState().setOverlay("desk")}>查看全部</button></div>
+        <button className="btn sm ghost more" onClick={() => useShell.getState().setOverlay("desk")}>查看全部</button></div>
       <div className="attend">
         {priority.slice(0, 3).map((it) => {
           const a = agents.find((x) => x.id === it.from);
@@ -99,12 +100,12 @@ function HomeView({ onOpen }: { onOpen: (id: string) => void }) {
               <p>{it.context}</p>
               <div className="acts">
                 {it.taskId && <button className="btn sm go" onClick={(e) => { e.stopPropagation(); onOpen(it.taskId!); }}>去处理</button>}
-                <button className="btn sm ghost" onClick={(e) => { e.stopPropagation(); useStore.getState().setOverlay("desk"); }}>更多</button>
+                <button className="btn sm ghost" onClick={(e) => { e.stopPropagation(); useShell.getState().setOverlay("desk"); }}>更多</button>
               </div>
             </article>
           );
         })}
-        <button className="all-link" onClick={() => useStore.getState().setOverlay("desk")}>
+        <button className="all-link" onClick={() => useShell.getState().setOverlay("desk")}>
           <b>+{Math.max(0, priority.length - 3)}</b>查看全部待处理
         </button>
       </div>
@@ -159,7 +160,7 @@ function TasksView({ onOpen }: { onOpen: (id: string) => void }) {
 /* ---------- Agent 页 ---------- */
 function AgentsView() {
   const agents = useStore((s) => s.agents);
-  const setRoute = useStore((s) => s.setRoute);
+  const setRoute = useShell((s) => s.setRoute);
   const tasks = useStore((s) => s.tasks);
   const [sel, setSel] = useState<string | null>(null);
   const a = agents.find((x) => x.id === sel);

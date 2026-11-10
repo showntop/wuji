@@ -5,11 +5,12 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
+    "@wuji/harness": "workspace:*",
     "@wuji/model": "workspace:*",
     "@wuji/store": "workspace:*",
     "@wuji/ui": "workspace:*",
-    "@wuji/workflow": "workspace:*",
     "@wuji/viewers": "workspace:*",
+    "@wuji/workflow": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^4.5.2"
