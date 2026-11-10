@@ -4,7 +4,7 @@ import type { Task, Step, Agent } from "@wuji/model";
 import { taskProgress } from "@wuji/model";
 import { useStore } from "../store";
 import { Lamp, StatusTag, Mk } from "@wuji/ui/src/components";
-import { ArtifactView } from "@wuji/viewers/src/Viewer";
+import { ArtifactView, findArtifact } from "@wuji/viewers";
 
 const KIND_CN: Record<string, string> = { table: "表", doc: "稿", image: "图", note: "记" };
 const cam0 = { x: 24, y: 16, z: 1 };
@@ -210,9 +210,7 @@ const STATUS_CN: Record<string, string> = {
 };
 
 function ArtifactBody({ taskId, name, artifacts }: { taskId: string; name: string; artifacts: ReturnType<typeof useStore.getState>["artifacts"] }) {
-  const short = name.replace(/ · .*$/, "");
-  const a = artifacts.find((x) => x.taskId === taskId && x.name.includes(short))
-         ?? artifacts.find((x) => x.name.includes(short));
+  const a = findArtifact(artifacts, taskId, name);
   if (!a) return <p className="note" style={{ maxWidth: 680, margin: "40px auto" }}>产物内容将在该步骤完成后写入（当前为占位）。</p>;
   return <ArtifactView artifact={a} />;
 }

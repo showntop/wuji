@@ -1,1 +1,2 @@
-export * from "./Viewer";
+export { ArtifactView } from "./Viewer";
+export { findArtifact } from "./findArtifact";

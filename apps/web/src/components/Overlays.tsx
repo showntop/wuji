@@ -3,7 +3,7 @@ import type { Agent, InboxItem } from "@wuji/model";
 import { useStore } from "../store";
 import { useShell } from "../shellStore";
 import { Mk } from "@wuji/ui/src/components";
-import { ArtifactView } from "@wuji/viewers/src/Viewer";
+import { ArtifactView, findArtifact } from "@wuji/viewers";
 
 const KIND_CN: Record<string, string> = { decision: "决策", confirm: "确认", fyi: "知情" };
 
@@ -215,9 +215,7 @@ export function ViewerOverlay() {
     return () => document.removeEventListener("keydown", h);
   }, [viewer, setViewer]);
   if (!viewer) return null;
-  const short = viewer.name.replace(/ · .*$/, "");
-  const a = artifacts.find((x) => x.taskId === viewer.taskId && x.name.includes(short))
-         ?? artifacts.find((x) => x.name.includes(short));
+  const a = findArtifact(artifacts, viewer.taskId, viewer.name);
   const task = tasks.find((t) => t.id === viewer.taskId);
   return (
     <div className="aviewer">
