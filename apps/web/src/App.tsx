@@ -3,13 +3,20 @@ import { useStore, initPersistence, resetPersisted } from "./store";
 import { useShell } from "./shellStore";
 import { startHarnessDriver } from "./harnessDriver";
 import { Seg7 } from "@wuji/ui";
-import { Views } from "./components/Views";
-import { Desk, LedgerPanel, Summon, ViewerOverlay } from "./components/Overlays";
+import { HomeView } from "./routes/Home";
+import { TasksView } from "./routes/Tasks";
+import { AgentsView } from "./routes/Agents";
+import { TaskFlowView } from "./routes/TaskDetail";
+import { Desk } from "./shell/Desk";
+import { LedgerPanel } from "./shell/LedgerPanel";
+import { Summon } from "./shell/Summon";
+import { ViewerOverlay } from "./shell/ViewerOverlay";
 
 export default function App() {
   const route = useShell((s) => s.route);
   const setRoute = useShell((s) => s.setRoute);
   const overlay = useShell((s) => s.overlay);
+  const openTaskId = useShell((s) => s.openTaskId);
   const viewer = useShell((s) => s.viewer);
   const inbox = useStore((s) => s.inbox);
   const tasks = useStore((s) => s.tasks);
@@ -36,6 +43,8 @@ export default function App() {
   }, [overlay, setRoute]);
 
   const live = tasks.filter((t) => t.status !== "done").length;
+  const openTask = tasks.find((t) => t.id === openTaskId);
+  const openTaskFn = useShell((s) => s.openTask);
   const waiting = tasks.filter((t) => t.status === "waiting").length;
   const myMinutes = tasks
     .flatMap((t) => t.steps)
@@ -97,7 +106,11 @@ export default function App() {
         </div>
       )}
 
-      <Views />
+      {route === "task" && openTask
+        ? <TaskFlowView task={openTask} onBack={() => setRoute("tasks")} />
+        : route === "agents" ? <AgentsView />
+        : route === "tasks" ? <TasksView onOpen={openTaskFn} />
+        : <HomeView onOpen={openTaskFn} />}
       <Summon />
       <Desk />
       <LedgerPanel />
